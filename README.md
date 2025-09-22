@@ -68,14 +68,14 @@ VANTA_STA_<UserID>_<Timestamp>_<Hash>
 ---
 
 ## 🌐 Scirod Server
-The official **Scirod Server** is your place for:  
+The official **Vanta Hub Server** is your place for:  
 - 📢 Updates & Announcements  
 - 🎟️ Key Distribution (`!getkey`)  
 - 🛠️ Support for Vanta Hub  
 - 💬 Community Discussions  
 
 Join us here:  
-👉 [Vanta HUb Discord](https://discord.gg/GT7ZwAbq) *(replace with your real invite)*  
+👉 [Vanta Hub Discord](https://discord.gg/GT7ZwAbq) *(replace with your real invite)*  
 
 ---
 
