@@ -75,7 +75,7 @@ The official **Vanta Hub Server** is your place for:
 - 💬 Community Discussions  
 
 Join us here:  
-👉 [Vanta Hub Discord](https://discord.gg/GT7ZwAbq) *(replace with your real invite)*  
+👉 [Vanta Hub Discord](https://discord.gg/ZFfnhYA3bb)  
 
 ---
 
