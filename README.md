@@ -75,7 +75,7 @@ The official **Scirod Server** is your place for:
 - 💬 Community Discussions  
 
 Join us here:  
-👉 [Scirod Discord](https://discord.gg/your-server-invite) *(replace with your real invite)*  
+👉 [Vanta HUb Discord](https://discord.gg/GT7ZwAbq) *(replace with your real invite)*  
 
 ---
 
