@@ -122,6 +122,9 @@ function Luma:Create(name)
 
 	-- Toggle button
 	local toggleBtn = make("TextButton", {Name = "Toggle", BackgroundTransparency = 1, Text = "-", TextColor3 = Luma.Theme.SecondaryText, Font = Enum.Font.Gotham, TextSize = 20, Size = UDim2.new(0,40,0,40), Position = UDim2.new(1,-44,0,0), Parent = titlebar})
+	-- Window controls: minimize, maximize, close
+	local maxBtn = make("TextButton", {Name = "Maximize", BackgroundTransparency = 1, Text = "□", TextColor3 = Luma.Theme.SecondaryText, Font = Enum.Font.Gotham, TextSize = 16, Size = UDim2.new(0,40,0,40), Position = UDim2.new(1,-88,0,0), Parent = titlebar})
+	local closeBtn = make("TextButton", {Name = "Close", BackgroundTransparency = 1, Text = "×", TextColor3 = Luma.Theme.SecondaryText, Font = Enum.Font.GothamBold, TextSize = 20, Size = UDim2.new(0,40,0,40), Position = UDim2.new(1,-132,0,0), Parent = titlebar})
 
 	self.Main = main
 	self.Title = title
@@ -188,6 +191,8 @@ function Luma:Create(name)
 
 	-- Make draggable by TitleBar
 	local dragging, dragStart, startPos
+	local isMaximized = false
+	local prevSize, prevPos
 	titlebar.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
@@ -206,6 +211,50 @@ function Luma:Create(name)
 				local delta = input.Position - dragStart
 				main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 			end
+		end
+	end)
+
+	-- Double-click titlebar to toggle maximize/restore
+	local lastClick = 0
+	titlebar.InputBegan:Connect(function(inp)
+		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+			local now = tick()
+			if now - lastClick < 0.35 then
+				-- toggle maximize
+				if not isMaximized then
+					prevSize = main.Size
+					prevPos = main.Position
+					isMaximized = true
+					tween(main, {Size = UDim2.new(1, -40, 1, -80), Position = UDim2.new(0,20,0,40)}, Luma.Anim.OpenTime, Enum.EasingStyle.Back)
+				else
+					isMaximized = false
+					tween(main, {Size = prevSize, Position = prevPos}, Luma.Anim.CloseTime, Enum.EasingStyle.Sine)
+				end
+			end
+			lastClick = now
+		end
+	end)
+
+	-- Maximize and Close button actions
+	maxBtn.MouseButton1Click:Connect(function()
+		if not isMaximized then
+			prevSize = main.Size
+			prevPos = main.Position
+			isMaximized = true
+			tween(main, {Size = UDim2.new(1, -40, 1, -80), Position = UDim2.new(0,20,0,40)}, Luma.Anim.OpenTime, Enum.EasingStyle.Back)
+			maxBtn.Text = "❐"
+		else
+			isMaximized = false
+			tween(main, {Size = prevSize or UDim2.new(0,800,0,520), Position = prevPos or UDim2.new(0.5,0,0.5,0)}, Luma.Anim.CloseTime, Enum.EasingStyle.Sine)
+			maxBtn.Text = "□"
+		end
+	end)
+
+	closeBtn.MouseButton1Click:Connect(function()
+		-- destroy the GUI
+		if self and self.ScreenGui then
+			self.ScreenGui:Destroy()
+			self.ScreenGui = nil
 		end
 	end)
 
