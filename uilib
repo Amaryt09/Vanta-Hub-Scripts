@@ -29,6 +29,31 @@ Luma.Anim = {
 	ToggleTime = 0.18,
 }
 
+-- Optional UI sounds (configure with asset IDs)
+Luma.Sounds = {
+	Enabled = false,
+	ButtonClick = nil,
+	ToggleFlip = nil,
+	SliderGrab = nil,
+	DropdownOpen = nil,
+	NotifyShow = nil,
+	ModalOpen = nil,
+}
+
+local function playSound(soundName)
+	if not Luma.Sounds.Enabled then return end
+	local soundId = Luma.Sounds[soundName]
+	if not soundId then return end
+	pcall(function()
+		local sound = Instance.new("Sound")
+		sound.SoundId = soundId
+		sound.Volume = 0.5
+		sound.Parent = game:GetService("SoundService") or workspace
+		sound:Play()
+		game:GetService("Debris"):AddItem(sound, 0.5)
+	end)
+end
+
 -- Helpers
 local function tween(inst, props, time, style, dir)
 	style = style or Enum.EasingStyle.Quint
@@ -62,22 +87,9 @@ local function addHoverEffects(btn)
 	if not btn then return end
 	btn.MouseEnter:Connect(function()
 		pcall(function() tween(btn, {TextColor3 = Luma.Theme.Accent}, Luma.Anim.HoverTime, Enum.EasingStyle.Quad) end)
-		-- subtle scale up (tween Size if possible)
-		pcall(function()
-			local s = btn.Size
-			local factor = 1.02
-			tween(btn, {Size = UDim2.new(s.X.Scale * factor, s.X.Offset * factor, s.Y.Scale * factor, s.Y.Offset * factor)}, Luma.Anim.HoverTime, Enum.EasingStyle.Quad)
-		end)
-		pcall(function() tween(btn, {TextSize = (btn.TextSize or 14) + 1}, Luma.Anim.HoverTime, Enum.EasingStyle.Quad) end)
 	end)
 	btn.MouseLeave:Connect(function()
 		pcall(function() tween(btn, {TextColor3 = Luma.Theme.PrimaryText}, Luma.Anim.HoverTime, Enum.EasingStyle.Quad) end)
-		pcall(function()
-			local s = btn.Size
-			local factor = 1/1.02
-			tween(btn, {Size = UDim2.new(s.X.Scale * factor, math.floor(s.X.Offset * factor), s.Y.Scale * factor, math.floor(s.Y.Offset * factor))}, Luma.Anim.HoverTime, Enum.EasingStyle.Quad)
-		end)
-		pcall(function() tween(btn, {TextSize = (btn.TextSize or 14)}, Luma.Anim.HoverTime, Enum.EasingStyle.Quad) end)
 	end)
 end
 
@@ -94,7 +106,14 @@ function Luma:Create(name)
 	screenGui.Name = self.Name
 	screenGui.ResetOnSpawn = false
 	screenGui.DisplayOrder = 999
-	screenGui.Parent = (RunService:IsStudio() and game:GetService("CoreGui")) or game:GetService("Players"):GetPlayers()[1] and game:GetService("Players"):GetPlayers()[1].PlayerGui
+	local targetParent = game:GetService("CoreGui")
+	if not RunService:IsStudio() then
+		local players = game:GetService("Players"):GetPlayers()
+		if players and #players > 0 and players[1]:FindFirstChild("PlayerGui") then
+			targetParent = players[1].PlayerGui
+		end
+	end
+	screenGui.Parent = targetParent
 	self.ScreenGui = screenGui
 
 	-- Main window frame
@@ -255,6 +274,7 @@ function Luma:Create(name)
 		if self and self.ScreenGui then
 			self.ScreenGui:Destroy()
 			self.ScreenGui = nil
+			self.Main = nil
 		end
 	end)
 
@@ -328,7 +348,7 @@ function Luma:AddTab(title)
 
 	-- section builder
 	function tab:AddSection(name)
-		local section = make("Frame", {Name = name, BackgroundTransparency = 1, Size = UDim2.new(1, -16, 0, 40), Parent = self.Content})
+		local section = make("Frame", {Name = name, BackgroundTransparency = 1, Size = UDim2.new(1, -16, 0, 40), Parent = tabContent})
 		local header = make("TextLabel", {Text = name, BackgroundTransparency = 1, TextColor3 = Luma.Theme.PrimaryText, Font = Enum.Font.GothamBold, TextSize = 14, Position = UDim2.new(0,8,0,0), Parent = section})
 		local items = make("Frame", {Name = "Items", BackgroundTransparency = 1, Position = UDim2.new(0,0,0,24), Size = UDim2.new(1,0,0,0), Parent = section})
 		local list = make("UIListLayout", {Parent = items})
@@ -341,6 +361,7 @@ function Luma:AddTab(title)
 			local stroke = make("UIStroke", {Parent = b, Color = Color3.fromRGB(0,0,0), Transparency = 0.7, Thickness = 1})
 			addHoverEffects(b)
 			b.MouseButton1Click:Connect(function(input)
+				playSound("ButtonClick")
 				-- ripple effect at mouse location
 				local pos = UDim2.new(0, b.AbsoluteSize.X/2, 0, b.AbsoluteSize.Y/2)
 				local mousePos = UserInputService:GetMouseLocation()
@@ -384,6 +405,7 @@ function Luma:AddTab(title)
 
 			toggleBg.InputBegan:Connect(function(inp)
 				if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+					playSound("ToggleFlip")
 					setState(not isOn)
 				end
 			end)
@@ -415,6 +437,7 @@ function Luma:AddTab(title)
 			grab.InputBegan:Connect(function(inp)
 				if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
 					dragging = true
+					playSound("SliderGrab")
 					-- grab press animation
 					tween(grab, {Size = UDim2.new(0,22,0,22)}, Luma.Anim.ButtonPress, Enum.EasingStyle.Quad)
 				end
@@ -542,6 +565,7 @@ function Luma:AddTab(title)
 					tween(list, {Size = UDim2.new(0,160,0,0)}, 0.18)
 					task.delay(0.18, function() list.Visible = false end)
 				else
+					playSound("DropdownOpen")
 					list.Visible = true
 					refreshList(enableSearch and searchBox and searchBox.Text)
 					local selectedIndex = 1
@@ -566,7 +590,6 @@ function Luma:AddTab(title)
 							highlight(selectedIndex)
 						elseif input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.ButtonA then
 							if entries[selectedIndex] then
-								entries[selectedIndex]:GetPropertyChangedSignal("Text"):Wait() -- ensure consistent
 								entries[selectedIndex]:MouseButton1Click()
 							end
 						end
@@ -700,6 +723,7 @@ end
 
 -- Simple notification utility
 function Luma:Notify(title, text, time)
+	playSound("NotifyShow")
 	-- queued notify to avoid overlapping
 	self._notifyQueue = self._notifyQueue or {}
 	table.insert(self._notifyQueue, {title = title, text = text, time = time or 3})
@@ -776,6 +800,7 @@ end
 
 -- Modal dialog helper
 function Luma:OpenModal(title, text, buttons)
+	playSound("ModalOpen")
 	-- buttons: array of {Text = string, Callback = function}
 	if not self or not self.ScreenGui then return end
 	local overlay = make("Frame", {Size = UDim2.new(1,0,1,0), BackgroundColor3 = Color3.fromRGB(0,0,0), BackgroundTransparency = 0.6, Parent = self.ScreenGui})
