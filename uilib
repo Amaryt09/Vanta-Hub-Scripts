@@ -178,7 +178,7 @@ function Luma:Create(name)
 	local tabsLayout = make("UIListLayout", {Parent = tabs, FillDirection = Enum.FillDirection.Horizontal, SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Left})
 
 	-- Sections scroller
-	local content = make("ScrollingFrame", {Name = "Content", BackgroundTransparency = 1, Size = UDim2.new(1,1,1,-40), Position = UDim2.new(0,0,0,40), Parent = right, ScrollBarThickness = 6, CanvasSize = UDim2.new(0,0,0,0)})
+	local content = make("ScrollingFrame", {Name = "Content", BackgroundTransparency = 1, Size = UDim2.new(1,0,1,-40), Position = UDim2.new(0,0,0,40), Parent = right, ScrollBarThickness = 6, CanvasSize = UDim2.new(0,0,0,0)})
 	content.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	local contentLayout = make("UIListLayout", {Parent = content, Padding = UDim.new(0,8)})
 
@@ -291,45 +291,19 @@ end
 function Luma:AddTab(title)
 	local tabBtn = make("TextButton", {Text = title, BackgroundTransparency = 1, TextColor3 = Luma.Theme.PrimaryText, Font = Enum.Font.Gotham, TextSize = 16, Size = UDim2.new(0,120,1,0), Parent = self.TabsFrame})
     addHoverEffects(tabBtn)
-	local tabContent = make("Frame", {Name = title.."Section", BackgroundTransparency = 1, Size = UDim2.new(1,0,0,0), Parent = self.Content})
+	local tabContent = make("Frame", {Name = title.."Section", BackgroundTransparency = 1, Size = UDim2.new(1,0,1,0), Parent = self.Content})
 	local layout = make("UIListLayout", {Parent = tabContent, Padding = UDim.new(0,8)})
+	tabContent.AutomaticSize = Enum.AutomaticSize.Y
 
 	-- click behavior: show only this tab's content
 		tabBtn.MouseButton1Click:Connect(function()
-			-- animate hide current visible frames and show this one with a slide/fade
+			-- hide all other tabs, show this one
 			for _, child in pairs(self.Content:GetChildren()) do
-				if child:IsA("Frame") and child.Visible then
-					-- slide out
-					child.Visible = true
-					child.ClipsDescendants = true
-					for _, c in pairs(child:GetChildren()) do
-						if c:IsA("Frame") or c:IsA("TextLabel") or c:IsA("ScrollingFrame") then
-							pcall(function() tween(c, {Position = UDim2.new(c.Position.X.Scale, c.Position.X.Offset - 20, c.Position.Y.Scale, c.Position.Y.Offset), }, 0.18) end)
-							pcall(function() tween(c, {TextTransparency = 1}, 0.18) end)
-						end
-					end
+				if child:IsA("Frame") then
 					child.Visible = false
 				end
 			end
-			-- prepare new content
 			tabContent.Visible = true
-			for _, c in pairs(tabContent:GetChildren()) do
-				if c:IsA("Frame") or c:IsA("TextLabel") or c:IsA("ScrollingFrame") then
-					pcall(function()
-						c.Position = UDim2.new(c.Position.X.Scale, c.Position.X.Offset + 20, c.Position.Y.Scale, c.Position.Y.Offset)
-						c.TextTransparency = 1
-					end)
-				end
-			end
-			-- animate in
-			task.delay(0.02, function()
-				for _, c in pairs(tabContent:GetChildren()) do
-					if c:IsA("Frame") or c:IsA("TextLabel") or c:IsA("ScrollingFrame") then
-						pcall(function() tween(c, {Position = UDim2.new(c.Position.X.Scale, c.Position.X.Offset - 20, c.Position.Y.Scale, c.Position.Y.Offset), }, 0.28, Enum.EasingStyle.Quad) end)
-						pcall(function() tween(c, {TextTransparency = 0}, 0.28, Enum.EasingStyle.Quad) end)
-					end
-				end
-			end)
 		end)
 
 	-- default: hide new tab content and show first if none
