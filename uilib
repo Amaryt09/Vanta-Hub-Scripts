@@ -1,2028 +1,924 @@
--- ╔═══════════════════════════════════════════════════════════════════════╗-- Luma UI Library v2.0 - Complete Rewrite
+-- Luma Hub UI Library
+-- Inspired by Onion UI with smooth animations and mobile/PC compatibility
+-- Created with love ❤️
 
--- ║  LUMA UI LIBRARY v3.0 - ULTIMATE ENHANCED EDITION                   ║-- Smooth, animated, mobile-friendly UI for Roblox executors
-
--- ║  Complete rewrite with 2000+ lines of bulletproof code              ║-- Features: Extensive animations, polished components, full persistence
-
--- ║  No bugs, no shadows, no bullshit - just pure working UI            ║
-
--- ╚═══════════════════════════════════════════════════════════════════════╝local TweenService = game:GetService("TweenService")
-
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 
-local TweenService = game:GetService("TweenService")local RunService = game:GetService("RunService")
+local LumaHub = {}
+LumaHub.__index = LumaHub
 
-local UserInputService = game:GetService("UserInputService")local HttpService = game:GetService("HttpService")
-
-local RunService = game:GetService("RunService")local Debris = game:GetService("Debris")
-
-local HttpService = game:GetService("HttpService")
-
-local Debris = game:GetService("Debris")local Luma = {}
-
-Luma.__index = Luma
-
-local Luma = {}
-
-Luma.__index = Luma-- ================== THEME ==================
-
-Luma.Theme = {
-
--- ╔═══════════════════════════════════════════════════════════════════════╗	Background = Color3.fromRGB(15, 15, 20),
-
--- ║ THEME - Beautiful, clean, professional colors                        ║	BackgroundLight = Color3.fromRGB(25, 25, 32),
-
--- ╚═══════════════════════════════════════════════════════════════════════╝	Accent = Color3.fromRGB(120, 80, 255),
-
-	AccentDark = Color3.fromRGB(90, 60, 200),
-
-Luma.Theme = {	PrimaryText = Color3.fromRGB(240, 240, 245),
-
-	Background = Color3.fromRGB(20, 20, 28),	SecondaryText = Color3.fromRGB(160, 160, 170),
-
-	Surface = Color3.fromRGB(28, 28, 36),	Success = Color3.fromRGB(76, 175, 80),
-
-	Accent = Color3.fromRGB(100, 200, 255),	Warning = Color3.fromRGB(255, 152, 0),
-
-	AccentDark = Color3.fromRGB(70, 150, 220),	Error = Color3.fromRGB(244, 67, 54),
-
-	TextPrimary = Color3.fromRGB(255, 255, 255),}
-
-	TextSecondary = Color3.fromRGB(180, 180, 190),
-
-	Hover = Color3.fromRGB(40, 40, 50),-- ================== ANIMATION TIMING ==================
-
-	Border = Color3.fromRGB(50, 50, 60),Luma.Anim = {
-
-	Success = Color3.fromRGB(76, 175, 80),	OpenTime = 0.40,
-
-	Warning = Color3.fromRGB(255, 152, 0),	CloseTime = 0.30,
-
-	Error = Color3.fromRGB(255, 100, 100),	HoverTime = 0.15,
-
-}	EntryStagger = 0.05,
-
-	ButtonPress = 0.08,
-
--- ╔═══════════════════════════════════════════════════════════════════════╗	SliderTween = 0.12,
-
--- ║ ANIMATION CONFIG - Snappy, responsive                               ║	ToggleTime = 0.20,
-
--- ╚═══════════════════════════════════════════════════════════════════════╝	RippleTime = 0.65,
-
-	DropdownReveal = 0.22,
-
-Luma.Anim = {	ModalOpen = 0.28,
-
-	WindowOpen = 0.35,}
-
-	WindowClose = 0.25,
-
-	Hover = 0.12,-- ================== OPTIONAL SOUNDS ==================
-
-	Click = 0.06,Luma.Sounds = {
-
-	Slide = 0.15,	Enabled = false,
-
-	Toggle = 0.18,	ButtonClick = nil,
-
-	Ripple = 0.6,	ToggleFlip = nil,
-
-	Dropdown = 0.2,	SliderGrab = nil,
-
-	Notify = 0.3,	DropdownOpen = nil,
-
-	Stagger = 0.04,	NotifyShow = nil,
-
-}	ModalOpen = nil,
-
+-- Theme Colors
+local Theme = {
+    Background = Color3.fromRGB(15, 15, 20),
+    Secondary = Color3.fromRGB(25, 25, 35),
+    Accent = Color3.fromRGB(138, 43, 226), -- Purple
+    AccentHover = Color3.fromRGB(158, 63, 246),
+    Text = Color3.fromRGB(255, 255, 255),
+    SubText = Color3.fromRGB(180, 180, 190),
+    Border = Color3.fromRGB(60, 60, 80),
+    Success = Color3.fromRGB(46, 204, 113),
+    Danger = Color3.fromRGB(231, 76, 60),
+    Warning = Color3.fromRGB(241, 196, 15)
 }
 
--- ╔═══════════════════════════════════════════════════════════════════════╗
-
--- ║ SOUNDS - Optional audio feedback                                     ║local function playSound(soundName)
-
--- ╚═══════════════════════════════════════════════════════════════════════╝	if not Luma.Sounds.Enabled or not Luma.Sounds[soundName] then return end
-
-	pcall(function()
-
-Luma.Sounds = {		local sound = Instance.new("Sound")
-
-	Enabled = false,		sound.SoundId = Luma.Sounds[soundName]
-
-	ButtonClick = nil,		sound.Volume = 0.6
-
-	ToggleFlip = nil,		sound.Parent = workspace
-
-	SliderGrab = nil,		sound:Play()
-
-	DropdownOpen = nil,		Debris:AddItem(sound, 2)
-
-	NotifyShow = nil,	end)
-
-	HoverIn = nil,end
-
-}
-
--- ================== HELPERS ==================
-
--- ╔═══════════════════════════════════════════════════════════════════════╗local function tween(inst, props, time, style, dir)
-
--- ║ UTILITY FUNCTIONS                                                     ║	if not inst or not inst.Parent then return end
-
--- ╚═══════════════════════════════════════════════════════════════════════╝	style = style or Enum.EasingStyle.Quint
-
-	dir = dir or Enum.EasingDirection.Out
-
-local function tween(inst, props, duration, easing, direction)	local info = TweenInfo.new(time or 0.25, style, dir)
-
-	if not inst or not inst.Parent then return end	local t = TweenService:Create(inst, info, props)
-
-	local info = TweenInfo.new(	t:Play()
-
-		duration or 0.25,	return t
-
-		easing or Enum.EasingStyle.Quint,end
-
-		direction or Enum.EasingDirection.Out
-
-	)local function make(class, props)
-
-	local t = TweenService:Create(inst, info, props)	local inst = Instance.new(class)
-
-	t:Play()	if props then
-
-	return t		for k, v in pairs(props) do
-
-end			pcall(function() inst[k] = v end)
-
-		end
-
-local function make(class, props)	end
-
-	local obj = Instance.new(class)	return inst
-
-	if props thenend
-
-		for k, v in pairs(props) do
-
-			pcall(function() obj[k] = v end)local function createRipple(parent, position, color)
-
-		end	if not parent or not parent.Parent then return end
-
-	end	local ripple = make("Frame", {
-
-	return obj		Size = UDim2.new(0, 14, 0, 14),
-
-end		AnchorPoint = Vector2.new(0.5, 0.5),
-
-		Position = position,
-
-local function playSound(name)		BackgroundColor3 = color or Luma.Theme.Accent,
-
-	if not Luma.Sounds.Enabled or not Luma.Sounds[name] then return end		BackgroundTransparency = 0.4,
-
-	pcall(function()		Parent = parent,
-
-		local snd = make("Sound", {		ZIndex = parent.ZIndex + 1,
-
-			SoundId = Luma.Sounds[name],	})
-
-			Volume = 0.5,	make("UICorner", {Parent = ripple, CornerRadius = UDim.new(1, 0)})
-
-			Parent = workspace	
-
-		})	tween(ripple, {
-
-		snd:Play()		Size = UDim2.new(0, 250, 0, 250),
-
-		Debris:AddItem(snd, 0.5)		BackgroundTransparency = 1
-
-	end)	}, Luma.Anim.RippleTime, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-
-end	
-
-	task.delay(Luma.Anim.RippleTime, function()
-
--- ╔═══════════════════════════════════════════════════════════════════════╗		if ripple and ripple.Parent then pcall(function() ripple:Destroy() end) end
-
--- ║ RIPPLE EFFECT - Beautiful expanding circles                          ║	end)
-
--- ╚═══════════════════════════════════════════════════════════════════════╝end
-
-
-
-local function createRipple(parent, mousePos, color)local function addHoverEffects(btn, originalColor)
-
-	if not parent or not parent.Parent then return end	if not btn then return end
-
-		originalColor = originalColor or Luma.Theme.PrimaryText
-
-	local ripple = make("Frame", {	
-
-		Size = UDim2.new(0, 10, 0, 10),	btn.MouseEnter:Connect(function()
-
-		Position = UDim2.new(0, mousePos.X - parent.AbsolutePosition.X, 0, mousePos.Y - parent.AbsolutePosition.Y),		if btn and btn.Parent then
-
-		BackgroundColor3 = color or Luma.Theme.Accent,			pcall(function()
-
-		BackgroundTransparency = 0.3,				tween(btn, {TextColor3 = Luma.Theme.Accent}, Luma.Anim.HoverTime, Enum.EasingStyle.Quad)
-
-		Parent = parent,			end)
-
-		ZIndex = parent.ZIndex + 10,		end
-
-		AnchorPoint = Vector2.new(0.5, 0.5),	end)
-
-	})	
-
-		btn.MouseLeave:Connect(function()
-
-	make("UICorner", {Parent = ripple, CornerRadius = UDim.new(1, 0)})		if btn and btn.Parent then
-
-				pcall(function()
-
-	tween(ripple, {Size = UDim2.new(0, 300, 0, 300), BackgroundTransparency = 1}, Luma.Anim.Ripple)				tween(btn, {TextColor3 = originalColor}, Luma.Anim.HoverTime, Enum.EasingStyle.Quad)
-
-	task.delay(Luma.Anim.Ripple, function()			end)
-
-		if ripple and ripple.Parent then pcall(function() ripple:Destroy() end) end		end
-
-	end)	end)
-
-endend
-
-
-
--- ╔═══════════════════════════════════════════════════════════════════════╗-- ================== MAIN WINDOW ==================
-
--- ║ MAIN WINDOW CREATION                                                 ║function Luma:Create(title)
-
--- ╚═══════════════════════════════════════════════════════════════════════╝	local self = setmetatable({}, Luma)
-
-	self.Name = title or "Luma UI"
-
-function Luma:Create(title)	self.Tabs = {}
-
-	local self = setmetatable({}, Luma)	self.Settings = {}
-
-	self.Name = title or "Luma UI"	self._notifyQueue = {}
-
-	self.Tabs = {}	self._notifyRunning = false
-
-	self.Settings = {}	
-
-	self._notifications = {}	-- Create ScreenGui
-
-	self._notifyActive = false	local screenGui = make("ScreenGui", {
-
-			Name = self.Name,
-
-	-- Create ScreenGui		ResetOnSpawn = false,
-
-	local screenGui = make("ScreenGui", {		DisplayOrder = 999,
-
-		Name = self.Name,		BackgroundTransparency = 1,
-
-		ResetOnSpawn = false,	})
-
-		DisplayOrder = 999,	
-
-		BackgroundTransparency = 1,	-- Safe parent detection
-
-	})	local targetParent = game:GetService("CoreGui")
-
-		if not RunService:IsStudio() then
-
-	-- Safe parent detection		local ok, players = pcall(function()
-
-	local parent = game:GetService("CoreGui")			local plrs = game:GetService("Players"):GetPlayers()
-
-	pcall(function()			return plrs and #plrs > 0 and plrs[1] or nil
-
-		if not RunService:IsStudio() then		end)
-
-			local players = game:GetService("Players"):GetPlayers()		if ok and players then
-
-			if players and #players > 0 and players[1]:FindFirstChild("PlayerGui") then			local playerGui = players:FindFirstChild("PlayerGui")
-
-				parent = players[1].PlayerGui			if playerGui then targetParent = playerGui end
-
-			end		end
-
-		end	end
-
-	end)	screenGui.Parent = targetParent
-
-		self.ScreenGui = screenGui
-
-	screenGui.Parent = parent	
-
-	self.ScreenGui = screenGui	-- Main window frame
-
-		local main = make("Frame", {
-
-	-- Main window - NO SHADOW, clean design		Name = "MainWindow",
-
-	local mainWindow = make("Frame", {		BackgroundColor3 = Luma.Theme.Background,
-
-		Name = "MainWindow",		AnchorPoint = Vector2.new(0.5, 0.5),
-
-		BackgroundColor3 = Luma.Theme.Background,		Position = UDim2.new(0.5, 0, 0.5, 0),
-
-		BorderSizePixel = 0,		Size = UDim2.new(0, 920, 0, 600),
-
-		Size = UDim2.new(0, 1000, 0, 650),		Parent = screenGui,
-
-		Position = UDim2.new(0.5, -500, 0.5, -325),		ClipsDescendants = true,
-
-		Parent = screenGui,	})
-
-		ClipsDescendants = true,	make("UICorner", {Parent = main, CornerRadius = UDim.new(0, 12)})
-
-	})	
-
-		-- Drop shadow
-
-	make("UICorner", {Parent = mainWindow, CornerRadius = UDim.new(0, 14)})	local shadow = make("Frame", {
-
-	make("UIStroke", {Parent = mainWindow, Color = Luma.Theme.Border, Thickness = 2})		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-
-			AnchorPoint = Vector2.new(0.5, 0.5),
-
-	self.Main = mainWindow		Position = main.Position,
-
-			Size = UDim2.new(main.Size.X.Scale, main.Size.X.Offset + 30, main.Size.Y.Scale, main.Size.Y.Offset + 30),
-
-	-- ═══════════════════════════════════════════════════════════════════		BackgroundTransparency = 0.85,
-
-	-- TITLEBAR - Professional drag area		Parent = screenGui,
-
-	-- ═══════════════════════════════════════════════════════════════════		ZIndex = main.ZIndex - 1,
-
-		})
-
-	local titlebar = make("Frame", {	make("UICorner", {Parent = shadow, CornerRadius = UDim.new(0, 12)})
-
-		Name = "Titlebar",	
-
-		BackgroundColor3 = Luma.Theme.Surface,	self.Main = main
-
-		Size = UDim2.new(1, 0, 0, 50),	
-
-		Parent = mainWindow,	-- ================== TITLEBAR ==================
-
-		BorderSizePixel = 0,	local titlebar = make("Frame", {
-
-	})		BackgroundColor3 = Luma.Theme.Background,
-
-			Size = UDim2.new(1, 0, 0, 52),
-
-	make("UIStroke", {Parent = titlebar, Color = Luma.Theme.Border, Thickness = 1})		Parent = main,
-
-		})
-
-	local titleText = make("TextLabel", {	
-
-		Text = title or "Luma UI",	local titleGradient = make("UIGradient", {Parent = titlebar})
-
-		BackgroundTransparency = 1,	titleGradient.Color = ColorSequence.new({
-
-		TextColor3 = Luma.Theme.TextPrimary,		ColorSequenceKeypoint.new(0, Luma.Theme.Background),
-
-		Font = Enum.Font.GothamBold,		ColorSequenceKeypoint.new(1, Luma.Theme.Background:Lerp(Luma.Theme.Accent, 0.1))
-
-		TextSize = 18,	})
-
-		Position = UDim2.new(0, 16, 0, 12),	
-
-		Size = UDim2.new(0, 400, 0, 26),	make("UIStroke", {Parent = titlebar, Color = Luma.Theme.Accent, Transparency = 0.85, Thickness = 1})
-
-		Parent = titlebar,	
-
-	})	local titleLabel = make("TextLabel", {
-
-			BackgroundTransparency = 1,
-
-	self.Title = titleText		Text = title or "Luma UI",
-
-			TextColor3 = Luma.Theme.PrimaryText,
-
-	-- Window control buttons		Font = Enum.Font.GothamBold,
-
-	local closeBtn = make("TextButton", {		TextSize = 22,
-
-		Text = "✕",		Position = UDim2.new(0, 20, 0, 14),
-
-		BackgroundColor3 = Luma.Theme.Error,		Parent = titlebar,
-
-		TextColor3 = Luma.Theme.TextPrimary,	})
-
-		Font = Enum.Font.GothamBold,	self.Title = titleLabel
-
-		TextSize = 16,	
-
-		Size = UDim2.new(0, 40, 0, 40),	-- Window controls
-
-		Position = UDim2.new(1, -45, 0, 5),	local controlSize = 48
-
-		Parent = titlebar,	local controlGap = 4
-
-		BorderSizePixel = 0,	
-
-	})	local minimizeBtn = make("TextButton", {
-
-	make("UICorner", {Parent = closeBtn, CornerRadius = UDim.new(0, 6)})		BackgroundTransparency = 1,
-
-			Text = "−",
-
-	closeBtn.MouseButton1Click:Connect(function()		TextColor3 = Luma.Theme.SecondaryText,
-
-		tween(mainWindow, {BackgroundTransparency = 1}, Luma.Anim.WindowClose)		Font = Enum.Font.GothamBold,
-
-		task.delay(Luma.Anim.WindowClose, function()		TextSize = 24,
-
-			if screenGui then screenGui:Destroy() end		Size = UDim2.new(0, controlSize, 1, 0),
-
-		end)		Position = UDim2.new(1, -(controlSize * 3 + controlGap * 2), 0, 0),
-
-	end)		Parent = titlebar,
-
-		})
-
-	-- Dragging	
-
-	local dragging = false	local maximizeBtn = make("TextButton", {
-
-	local dragStart = nil		BackgroundTransparency = 1,
-
-	local dragOffset = nil		Text = "□",
-
-			TextColor3 = Luma.Theme.SecondaryText,
-
-	titlebar.InputBegan:Connect(function(input)		Font = Enum.Font.GothamBold,
-
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then		TextSize = 18,
-
-			dragging = true		Size = UDim2.new(0, controlSize, 1, 0),
-
-			dragStart = UserInputService:GetMouseLocation()		Position = UDim2.new(1, -(controlSize * 2 + controlGap), 0, 0),
-
-			dragOffset = mainWindow.Position		Parent = titlebar,
-
-		end	})
-
-	end)	
-
-		local closeBtn = make("TextButton", {
-
-	UserInputService.InputEnded:Connect(function(input)		BackgroundTransparency = 1,
-
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then		Text = "×",
-
-			dragging = false		TextColor3 = Luma.Theme.SecondaryText,
-
-		end		Font = Enum.Font.GothamBold,
-
-	end)		TextSize = 28,
-
-			Size = UDim2.new(0, controlSize, 1, 0),
-
-	UserInputService.InputChanged:Connect(function(input)		Position = UDim2.new(1, -controlSize, 0, 0),
-
-		if dragging and dragStart and dragOffset then		Parent = titlebar,
-
-			local current = UserInputService:GetMouseLocation()	})
-
-			local diff = current - dragStart	
-
-			mainWindow.Position = UDim2.new(dragOffset.X.Scale, dragOffset.X.Offset + diff.X, dragOffset.Y.Scale, dragOffset.Y.Offset + diff.Y)	addHoverEffects(minimizeBtn, Luma.Theme.SecondaryText)
-
-		end	addHoverEffects(maximizeBtn, Luma.Theme.SecondaryText)
-
-	end)	addHoverEffects(closeBtn, Luma.Theme.SecondaryText)
-
-		
-
-	-- ═══════════════════════════════════════════════════════════════════	-- Dragging
-
-	-- MAIN BODY - Tabs on left, content on right	local dragging, dragStart, dragPos
-
-	-- ═══════════════════════════════════════════════════════════════════	titlebar.InputBegan:Connect(function(input)
-
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-
-	local body = make("Frame", {			dragging = true
-
-		Name = "Body",			dragStart = input.Position
-
-		BackgroundTransparency = 1,			dragPos = main.Position
-
-		Size = UDim2.new(1, 0, 1, -50),			input.Changed:Connect(function()
-
-		Position = UDim2.new(0, 0, 0, 50),				if input.UserInputState == Enum.UserInputState.End then dragging = false end
-
-		Parent = mainWindow,			end)
-
-	})		end
-
-		end)
-
-	-- LEFT: TAB LIST	
-
-	local tabsPanel = make("Frame", {	titlebar.InputChanged:Connect(function(input)
-
-		Name = "TabsPanel",		if dragging and dragStart and dragPos then
-
-		BackgroundColor3 = Luma.Theme.Surface,			local delta = input.Position - dragStart
-
-		Size = UDim2.new(0, 200, 1, 0),			main.Position = UDim2.new(dragPos.X.Scale, dragPos.X.Offset + delta.X, dragPos.Y.Scale, dragPos.Y.Offset + delta.Y)
-
-		Parent = body,		end
-
-		BorderSizePixel = 0,	end)
-
-	})	
-
-		-- Minimize/Maximize
-
-	local tabsList = make("UIListLayout", {Parent = tabsPanel})	local isMaximized = false
-
-	tabsList.Padding = UDim.new(0, 8)	local prevSize, prevPos
-
-	tabsList.FillDirection = Enum.FillDirection.Vertical	
-
-	tabsList.SortOrder = Enum.SortOrder.LayoutOrder	minimizeBtn.MouseButton1Click:Connect(function()
-
-			if not isMaximized then
-
-	make("UIPadding", {			prevSize = main.Size
-
-		Parent = tabsPanel,			prevPos = main.Position
-
-		PaddingLeft = UDim.new(0, 10),			isMaximized = true
-
-		PaddingRight = UDim.new(0, 10),			tween(main, {Size = UDim2.new(0, 52, 0, 52)}, Luma.Anim.CloseTime)
-
-		PaddingTop = UDim.new(0, 10),			minimizeBtn.Text = "+"
-
-		PaddingBottom = UDim.new(0, 10),		else
-
-	})			isMaximized = false
-
-				tween(main, {Size = prevSize or UDim2.new(0, 920, 0, 600), Position = prevPos or UDim2.new(0.5, 0, 0.5, 0)}, Luma.Anim.OpenTime, Enum.EasingStyle.Back)
-
-	-- RIGHT: CONTENT AREA			minimizeBtn.Text = "−"
-
-	local contentPanel = make("Frame", {		end
-
-		Name = "ContentPanel",	end)
-
-		BackgroundColor3 = Luma.Theme.Background,	
-
-		Size = UDim2.new(1, -200, 1, 0),	maximizeBtn.MouseButton1Click:Connect(function()
-
-		Position = UDim2.new(0, 200, 0, 0),		if not isMaximized then
-
-		Parent = body,			prevSize = main.Size
-
-		BorderSizePixel = 0,			prevPos = main.Position
-
-	})			isMaximized = true
-
-				tween(main, {Size = UDim2.new(1, -60, 1, -60), Position = UDim2.new(0, 30, 0, 30)}, Luma.Anim.OpenTime, Enum.EasingStyle.Back)
-
-	local contentScroll = make("ScrollingFrame", {			maximizeBtn.Text = "❐"
-
-		Name = "ContentScroll",		else
-
-		BackgroundTransparency = 1,			isMaximized = false
-
-		Size = UDim2.new(1, 0, 1, 0),			tween(main, {Size = prevSize or UDim2.new(0, 920, 0, 600), Position = prevPos or UDim2.new(0.5, 0, 0.5, 0)}, Luma.Anim.CloseTime)
-
-		Parent = contentPanel,			maximizeBtn.Text = "□"
-
-		ScrollBarThickness = 6,		end
-
-		CanvasSize = UDim2.new(0, 0, 0, 0),	end)
-
-	})	
-
-	contentScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y	closeBtn.MouseButton1Click:Connect(function()
-
-			pcall(function()
-
-	local contentLayout = make("UIListLayout", {Parent = contentScroll})			tween(main, {BackgroundTransparency = 1}, Luma.Anim.CloseTime)
-
-	contentLayout.Padding = UDim.new(0, 12)			task.delay(Luma.Anim.CloseTime, function()
-
-	contentLayout.FillDirection = Enum.FillDirection.Vertical				screenGui:Destroy()
-
-	contentLayout.SortOrder = Enum.SortOrder.LayoutOrder				self.ScreenGui = nil
-
-				end)
-
-	make("UIPadding", {		end)
-
-		Parent = contentScroll,	end)
-
-		PaddingLeft = UDim.new(0, 16),	
-
-		PaddingRight = UDim.new(0, 16),	-- Double-click to maximize
-
-		PaddingTop = UDim.new(0, 16),	local lastClickTime = 0
-
-		PaddingBottom = UDim.new(0, 16),	titlebar.MouseButton1Click:Connect(function()
-
-	})		local now = tick()
-
-			if now - lastClickTime < 0.35 then
-
-	self.TabsPanel = tabsPanel			maximizeBtn:MouseButton1Click()
-
-	self.ContentPanel = contentPanel		end
-
-	self.ContentScroll = contentScroll		lastClickTime = now
-
-		end)
-
-	-- Initial animation - SMOOTH POP-IN	
-
-	mainWindow.BackgroundTransparency = 1	-- ================== BODY LAYOUT ==================
-
-	titlebar.BackgroundTransparency = 1	local body = make("Frame", {
-
-	mainWindow.Size = UDim2.new(0, 900, 0, 580)		BackgroundTransparency = 1,
-
-	tween(mainWindow, {BackgroundTransparency = 0, Size = UDim2.new(0, 1000, 0, 650)}, Luma.Anim.WindowOpen, Enum.EasingStyle.Back, Enum.EasingDirection.Out)		Size = UDim2.new(1, 0, 1, -52),
-
-	tween(titlebar, {BackgroundTransparency = 0}, Luma.Anim.WindowOpen)		Position = UDim2.new(0, 0, 0, 52),
-
-			Parent = main,
-
-	return self	})
-
-end	
-
-	-- Left sidebar for tabs
-
--- ╔═══════════════════════════════════════════════════════════════════════╗	local tabsPanel = make("Frame", {
-
--- ║ TAB SYSTEM - Organized sections                                       ║		BackgroundColor3 = Luma.Theme.BackgroundLight,
-
--- ╚═══════════════════════════════════════════════════════════════════════╝		Size = UDim2.new(0, 240, 1, 0),
-
-		Parent = body,
-
-function Luma:AddTab(tabName)	})
-
-	local tabBtn = make("TextButton", {	
-
-		Text = tabName,	local tabsList = make("UIListLayout", {
-
-		BackgroundColor3 = Luma.Theme.Hover,		Parent = tabsPanel,
-
-		TextColor3 = Luma.Theme.TextPrimary,		FillDirection = Enum.FillDirection.Vertical,
-
-		Font = Enum.Font.Gotham,		SortOrder = Enum.SortOrder.LayoutOrder,
-
-		TextSize = 14,		Padding = UDim.new(0, 4),
-
-		Size = UDim2.new(1, 0, 0, 40),	})
-
-		Parent = self.TabsPanel,	
-
-		BorderSizePixel = 0,	local tabsPadding = make("UIPadding", {Parent = tabsPanel})
-
-		AutoButtonColor = false,	tabsPadding.PaddingLeft = UDim.new(0, 8)
-
-	})	tabsPadding.PaddingRight = UDim.new(0, 8)
-
-		tabsPadding.PaddingTop = UDim.new(0, 8)
-
-	make("UICorner", {Parent = tabBtn, CornerRadius = UDim.new(0, 8)})	tabsPadding.PaddingBottom = UDim.new(0, 8)
-
-		
-
-	local tabContent = make("Frame", {	-- Right pane for content
-
-		Name = tabName .. "Content",	local contentPanel = make("Frame", {
-
-		BackgroundTransparency = 1,		BackgroundColor3 = Luma.Theme.Background,
-
-		Size = UDim2.new(1, 0, 0, 0),		Size = UDim2.new(1, -240, 1, 0),
-
-		Parent = self.ContentScroll,		Position = UDim2.new(0, 240, 0, 0),
-
-	})		Parent = body,
-
-	tabContent.AutomaticSize = Enum.AutomaticSize.Y	})
-
-		
-
-	local tabLayout = make("UIListLayout", {Parent = tabContent})	local contentScroll = make("ScrollingFrame", {
-
-	tabLayout.Padding = UDim.new(0, 12)		BackgroundTransparency = 1,
-
-	tabLayout.FillDirection = Enum.FillDirection.Vertical		Size = UDim2.new(1, 0, 1, 0),
-
-			Parent = contentPanel,
-
-	local tab = {		ScrollBarThickness = 8,
-
-		Name = tabName,		TopImage = "",
-
-		Button = tabBtn,		BottomImage = "",
-
-		Content = tabContent,		MidImage = "",
-
-	}	})
-
-		contentScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-
-	-- Tab click handler	
-
-	tabBtn.MouseButton1Click:Connect(function()	local contentLayout = make("UIListLayout", {
-
-		playSound("ButtonClick")		Parent = contentScroll,
-
-				Padding = UDim.new(0, 12),
-
-		-- Hide all tabs, show this one		FillDirection = Enum.FillDirection.Vertical,
-
-		for _, child in ipairs(self.ContentScroll:GetChildren()) do	})
-
-			if child ~= tabLayout and child:IsA("Frame") and child ~= tabContent then	
-
-				child.Visible = false	local contentPadding = make("UIPadding", {Parent = contentScroll})
-
-			end	contentPadding.PaddingLeft = UDim.new(0, 16)
-
-		end	contentPadding.PaddingRight = UDim.new(0, 16)
-
-		tabContent.Visible = true	contentPadding.PaddingTop = UDim.new(0, 16)
-
-			contentPadding.PaddingBottom = UDim.new(0, 16)
-
-		-- Highlight active tab	
-
-		for _, btn in ipairs(self.TabsPanel:GetChildren()) do	self.TabsPanel = tabsPanel
-
-			if btn:IsA("TextButton") then	self.ContentPanel = contentPanel
-
-				tween(btn, {BackgroundColor3 = Luma.Theme.Hover}, Luma.Anim.Hover)	self.ContentScroll = contentScroll
-
-			end	
-
-		end	-- Entrance animation
-
-		tween(tabBtn, {BackgroundColor3 = Luma.Theme.Accent}, Luma.Anim.Hover)	do
-
-	end)		main.BackgroundTransparency = 1
-
-			main.Size = UDim2.new(0, 920 * 0.92, 0, 600 * 0.92)
-
-	-- Show first tab by default		tween(main, {BackgroundTransparency = 0, Size = UDim2.new(0, 920, 0, 600)}, Luma.Anim.OpenTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-
-	if #self.Tabs == 0 then	end
-
-		tabContent.Visible = true	
-
-		tween(tabBtn, {BackgroundColor3 = Luma.Theme.Accent}, 0)	-- Mobile responsiveness
-
-	else	if UserInputService.TouchEnabled then
-
-		tabContent.Visible = false		main.Size = UDim2.new(0, 700, 0, 500)
-
-	end		tabsPanel.Size = UDim2.new(0, 200, 1, 0)
-
-			contentPanel.Size = UDim2.new(1, -200, 1, 0)
-
-	-- Add section builder		contentPanel.Position = UDim2.new(0, 200, 0, 0)
-
-	function tab:AddSection(sectionName)	end
-
-		local section = make("Frame", {	
-
-			Name = sectionName,	return self
-
-			BackgroundTransparency = 1,end
-
-			Size = UDim2.new(1, 0, 0, 0),
-
-			Parent = tabContent,-- ================== TAB SYSTEM ==================
-
-		})function Luma:AddTab(title)
-
-		section.AutomaticSize = Enum.AutomaticSize.Y	local tabBtn = make("TextButton", {
-
-				Text = title,
-
-		local sectionLayout = make("UIListLayout", {Parent = section})		BackgroundColor3 = Color3.fromRGB(35, 35, 42),
-
-		sectionLayout.Padding = UDim.new(0, 8)		TextColor3 = Luma.Theme.PrimaryText,
-
-		sectionLayout.FillDirection = Enum.FillDirection.Vertical		Font = Enum.Font.Gotham,
-
-				TextSize = 15,
-
-		-- Section header		Size = UDim2.new(1, 0, 0, 40),
-
-		local header = make("TextLabel", {		Parent = self.TabsPanel,
-
-			Text = sectionName,		BorderSizePixel = 0,
-
-			BackgroundTransparency = 1,	})
-
-			TextColor3 = Luma.Theme.TextPrimary,	make("UICorner", {Parent = tabBtn, CornerRadius = UDim.new(0, 6)})
-
-			Font = Enum.Font.GothamBold,	addHoverEffects(tabBtn)
-
-			TextSize = 14,	
-
-			Size = UDim2.new(1, 0, 0, 24),	local tabContent = make("Frame", {
-
-			Parent = section,		BackgroundTransparency = 1,
-
-		})		Size = UDim2.new(1, 0, 0, 0),
-
-				Parent = self.ContentScroll,
-
-		-- Items container	})
-
-		local items = make("Frame", {	tabContent.AutomaticSize = Enum.AutomaticSize.Y
-
-			Name = "Items",	
-
-			BackgroundTransparency = 1,	local tabContentLayout = make("UIListLayout", {
-
-			Size = UDim2.new(1, 0, 0, 0),		Parent = tabContent,
-
-			Parent = section,		Padding = UDim.new(0, 10),
-
-		})		FillDirection = Enum.FillDirection.Vertical,
-
-		items.AutomaticSize = Enum.AutomaticSize.Y	})
-
-			
-
-		local itemsLayout = make("UIListLayout", {Parent = items})	-- Tab switching
-
-		itemsLayout.Padding = UDim.new(0, 8)	tabBtn.MouseButton1Click:Connect(function()
-
-		itemsLayout.FillDirection = Enum.FillDirection.Vertical		playSound("ButtonClick")
-
-				for _, child in ipairs(self.ContentScroll:GetChildren()) do
-
-		-- ═════════════════════════════════════════════════════════════			if child ~= tabContent and child:IsA("Frame") then
-
-		-- BUTTON COMPONENT				tween(child, {BackgroundTransparency = 1}, Luma.Anim.DropdownReveal)
-
-		-- ═════════════════════════════════════════════════════════════				task.delay(Luma.Anim.DropdownReveal, function()
-
-							if child then child.Visible = false end
-
-		function items:AddButton(text, callback)				end)
-
-			local btn = make("TextButton", {			end
-
-				Text = text,		end
-
-				BackgroundColor3 = Luma.Theme.Hover,		tabContent.Visible = true
-
-				TextColor3 = Luma.Theme.TextPrimary,		tabContent.BackgroundTransparency = 1
-
-				Font = Enum.Font.Gotham,		tween(tabContent, {BackgroundTransparency = 0}, Luma.Anim.DropdownReveal)
-
-				TextSize = 13,		
-
-				Size = UDim2.new(1, 0, 0, 36),		-- Highlight active tab
-
-				Parent = items,		for _, btn in ipairs(self.TabsPanel:GetChildren()) do
-
-				BorderSizePixel = 0,			if btn:IsA("TextButton") then
-
-				AutoButtonColor = false,				tween(btn, {BackgroundColor3 = Color3.fromRGB(35, 35, 42)}, Luma.Anim.HoverTime)
-
-			})			end
-
-					end
-
-			make("UICorner", {Parent = btn, CornerRadius = UDim.new(0, 6)})		tween(tabBtn, {BackgroundColor3 = Luma.Theme.Accent:Lerp(Luma.Theme.Background, 0.3)}, Luma.Anim.HoverTime)
-
-				end)
-
-			-- Hover effect	
-
-			btn.MouseEnter:Connect(function()	-- Hide by default, show first tab
-
-				if btn and btn.Parent then	if #self.Tabs == 0 then
-
-					tween(btn, {BackgroundColor3 = Luma.Theme.Accent}, Luma.Anim.Hover)		tabContent.Visible = true
-
-				end		tween(tabBtn, {BackgroundColor3 = Luma.Theme.Accent:Lerp(Luma.Theme.Background, 0.3)}, 0)
-
-			end)	else
-
-					tabContent.Visible = false
-
-			btn.MouseLeave:Connect(function()	end
-
-				if btn and btn.Parent then	
-
-					tween(btn, {BackgroundColor3 = Luma.Theme.Hover}, Luma.Anim.Hover)	local tab = {
-
-				end		Title = title,
-
-			end)		Button = tabBtn,
-
-					Content = tabContent,
-
-			-- Click handler		_callback = nil,
-
-			btn.MouseButton1Click:Connect(function()	}
-
-				playSound("ButtonClick")	
-
-				createRipple(btn, UserInputService:GetMouseLocation(), Luma.Theme.Accent)	-- Section builder
-
-					function tab:AddSection(name)
-
-				-- Press animation		local section = make("Frame", {
-
-				tween(btn, {Size = UDim2.new(1, 0, 0, 32)}, Luma.Anim.Click)			BackgroundTransparency = 1,
-
-				task.delay(Luma.Anim.Click, function()			Size = UDim2.new(1, 0, 0, 0),
-
-					if btn and btn.Parent then			Parent = tabContent,
-
-						tween(btn, {Size = UDim2.new(1, 0, 0, 36)}, Luma.Anim.Click * 2, Enum.EasingStyle.Elastic)		})
-
-					end		section.AutomaticSize = Enum.AutomaticSize.Y
-
-				end)		
-
-						local sectionLayout = make("UIListLayout", {Parent = section, Padding = UDim.new(0, 8)})
-
-				if callback then pcall(callback) end		
-
-			end)		-- Header
-
-					local header = make("TextLabel", {
-
-			return btn			BackgroundTransparency = 1,
-
-		end			Text = name,
-
-					TextColor3 = Luma.Theme.PrimaryText,
-
-		-- ═════════════════════════════════════════════════════════════			Font = Enum.Font.GothamBold,
-
-		-- TOGGLE COMPONENT			TextSize = 15,
-
-		-- ═════════════════════════════════════════════════════════════			TextXAlignment = Enum.TextXAlignment.Left,
-
-					Size = UDim2.new(1, 0, 0, 24),
-
-		function items:AddToggle(text, default, callback)			Parent = section,
-
-			default = default or false		})
-
-					
-
-			local wrap = make("Frame", {		-- Items frame
-
-				BackgroundTransparency = 1,		local items = make("Frame", {
-
-				Size = UDim2.new(1, 0, 0, 36),			BackgroundTransparency = 1,
-
-				Parent = items,			Size = UDim2.new(1, 0, 0, 0),
-
-			})			Parent = section,
-
-					})
-
-			local label = make("TextLabel", {		items.AutomaticSize = Enum.AutomaticSize.Y
-
-				Text = text,		
-
-				BackgroundTransparency = 1,		local itemsLayout = make("UIListLayout", {Parent = items, Padding = UDim.new(0, 8)})
-
-				TextColor3 = Luma.Theme.TextPrimary,		
-
-				Font = Enum.Font.Gotham,		-- ================== BUTTON ==================
-
-				TextSize = 13,		function items:AddButton(text, callback)
-
-				Position = UDim2.new(0, 0, 0, 8),			local btn = make("TextButton", {
-
-				Size = UDim2.new(1, -60, 0, 18),				Text = text,
-
-				Parent = wrap,				BackgroundColor3 = Color3.fromRGB(32, 32, 38),
-
-			})				TextColor3 = Luma.Theme.PrimaryText,
-
-							Font = Enum.Font.Gotham,
-
-			local toggleBg = make("Frame", {				TextSize = 14,
-
-				BackgroundColor3 = default and Luma.Theme.Accent or Luma.Theme.Hover,				Size = UDim2.new(1, 0, 0, 38),
-
-				Size = UDim2.new(0, 50, 0, 24),				Parent = items,
-
-				Position = UDim2.new(1, -54, 0, 6),				BorderSizePixel = 0,
-
-				Parent = wrap,				AutoButtonColor = false,
-
-				BorderSizePixel = 0,			})
-
-			})			make("UICorner", {Parent = btn, CornerRadius = UDim.new(0, 6)})
-
-			make("UICorner", {Parent = toggleBg, CornerRadius = UDim.new(1, 0)})			make("UIStroke", {Parent = btn, Color = Luma.Theme.Accent, Transparency = 0.85, Thickness = 1})
-
-						
-
-			local thumb = make("Frame", {			addHoverEffects(btn)
-
-				BackgroundColor3 = Luma.Theme.TextPrimary,			
-
-				Size = UDim2.new(0, 20, 0, 20),			btn.MouseButton1Click:Connect(function()
-
-				Position = UDim2.new(default and 1 or 0, default and -22 or 2, 0, 2),				playSound("ButtonClick")
-
-				Parent = toggleBg,				
-
-				BorderSizePixel = 0,				-- Ripple effect
-
-			})				local mousePos = UserInputService:GetMouseLocation()
-
-			make("UICorner", {Parent = thumb, CornerRadius = UDim.new(1, 0)})				local relX = math.clamp(mousePos.X - btn.AbsolutePosition.X, 0, btn.AbsoluteSize.X)
-
-							local relY = math.clamp(mousePos.Y - btn.AbsolutePosition.Y, 0, btn.AbsoluteSize.Y)
-
-			local state = default				createRipple(btn, UDim2.new(0, relX, 0, relY), Luma.Theme.Accent)
-
-							
-
-			local function setState(newState)				-- Press animation
-
-				state = newState				tween(btn, {Size = UDim2.new(1, 0, 0, 36)}, Luma.Anim.ButtonPress, Enum.EasingStyle.Quad)
-
-				playSound("ToggleFlip")				task.delay(Luma.Anim.ButtonPress, function()
-
-									if btn and btn.Parent then
-
-				if state then						tween(btn, {Size = UDim2.new(1, 0, 0, 38)}, Luma.Anim.ButtonPress * 2, Enum.EasingStyle.Elastic)
-
-					tween(thumb, {Position = UDim2.new(1, -22, 0, 2)}, Luma.Anim.Toggle)					end
-
-					tween(toggleBg, {BackgroundColor3 = Luma.Theme.Accent}, Luma.Anim.Toggle)				end)
-
-				else				
-
-					tween(thumb, {Position = UDim2.new(0, 2, 0, 2)}, Luma.Anim.Toggle)				if callback then pcall(callback) end
-
-					tween(toggleBg, {BackgroundColor3 = Luma.Theme.Hover}, Luma.Anim.Toggle)			end)
-
-				end			
-
-							return btn
-
-				if callback then pcall(callback, state) end		end
-
-			end		
-
-					-- ================== TOGGLE ==================
-
-			toggleBg.InputBegan:Connect(function(input)		function items:AddToggle(text, default, callback)
-
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then			default = default or false
-
-					setState(not state)			local wrap = make("Frame", {
-
-				end				BackgroundTransparency = 1,
-
-			end)				Size = UDim2.new(1, 0, 0, 38),
-
-							Parent = items,
-
-			return {Get = function() return state end, Set = setState}			})
-
-		end			
-
-					local label = make("TextLabel", {
-
-		-- ═════════════════════════════════════════════════════════════				BackgroundTransparency = 1,
-
-		-- SLIDER COMPONENT				Text = text,
-
-		-- ═════════════════════════════════════════════════════════════				TextColor3 = Luma.Theme.PrimaryText,
-
-						Font = Enum.Font.Gotham,
-
-		function items:AddSlider(text, min, max, default, callback)				TextSize = 14,
-
-			min, max, default = min or 0, max or 100, default or 50				TextXAlignment = Enum.TextXAlignment.Left,
-
-							Position = UDim2.new(0, 0, 0, 8),
-
-			local wrap = make("Frame", {				Size = UDim2.new(1, -60, 0, 20),
-
-				BackgroundTransparency = 1,				Parent = wrap,
-
-				Size = UDim2.new(1, 0, 0, 60),			})
-
-				Parent = items,			
-
-			})			local toggleBg = make("Frame", {
-
-							BackgroundColor3 = Color3.fromRGB(50, 50, 60),
-
-			local label = make("TextLabel", {				Size = UDim2.new(0, 50, 0, 26),
-
-				Text = text .. " — " .. string.format("%.1f", default),				Position = UDim2.new(1, -54, 0, 6),
-
-				BackgroundTransparency = 1,				Parent = wrap,
-
-				TextColor3 = Luma.Theme.TextPrimary,				BorderSizePixel = 0,
-
-				Font = Enum.Font.Gotham,			})
-
-				TextSize = 13,			make("UICorner", {Parent = toggleBg, CornerRadius = UDim.new(1, 0)})
-
-				Position = UDim2.new(0, 0, 0, 0),			
-
-				Size = UDim2.new(1, 0, 0, 20),			local thumb = make("Frame", {
-
-				Parent = wrap,				BackgroundColor3 = default and Luma.Theme.Accent or Color3.fromRGB(180, 180, 190),
-
-			})				Size = UDim2.new(0, 22, 0, 22),
-
-							Position = UDim2.new(default and 1 or 0, default and -24 or 2, 0, 2),
-
-			local sliderBg = make("Frame", {				Parent = toggleBg,
-
-				BackgroundColor3 = Luma.Theme.Hover,				BorderSizePixel = 0,
-
-				Size = UDim2.new(1, 0, 0, 10),			})
-
-				Position = UDim2.new(0, 0, 0, 26),			make("UICorner", {Parent = thumb, CornerRadius = UDim.new(1, 0)})
-
-				Parent = wrap,			
-
-				BorderSizePixel = 0,			local isOn = default
-
-			})			
-
-			make("UICorner", {Parent = sliderBg, CornerRadius = UDim.new(1, 0)})			local function setState(value)
-
-							isOn = value
-
-			local fill = make("Frame", {				playSound("ToggleFlip")
-
-				BackgroundColor3 = Luma.Theme.Accent,				
-
-				Size = UDim2.new((default - min) / (max - min), 0, 1, 0),				if isOn then
-
-				Parent = sliderBg,					tween(thumb, {Position = UDim2.new(1, -24, 0, 2)}, Luma.Anim.ToggleTime, Enum.EasingStyle.Quint)
-
-				BorderSizePixel = 0,					tween(thumb, {BackgroundColor3 = Luma.Theme.Accent}, Luma.Anim.ToggleTime)
-
-			})					tween(toggleBg, {BackgroundColor3 = Color3.fromRGB(40, 50, 60)}, Luma.Anim.ToggleTime)
-
-			make("UICorner", {Parent = fill, CornerRadius = UDim.new(1, 0)})				else
-
-								tween(thumb, {Position = UDim2.new(0, 2, 0, 2)}, Luma.Anim.ToggleTime, Enum.EasingStyle.Quint)
-
-			local grab = make("Frame", {					tween(thumb, {BackgroundColor3 = Color3.fromRGB(180, 180, 190)}, Luma.Anim.ToggleTime)
-
-				BackgroundColor3 = Luma.Theme.Accent,					tween(toggleBg, {BackgroundColor3 = Color3.fromRGB(50, 50, 60)}, Luma.Anim.ToggleTime)
-
-				Size = UDim2.new(0, 16, 0, 16),				end
-
-				Position = UDim2.new((default - min) / (max - min), -8, 0.5, -8),				
-
-				Parent = sliderBg,				if callback then pcall(callback, isOn) end
-
-				BorderSizePixel = 0,			end
-
-				ZIndex = 5,			
-
-			})			toggleBg.MouseButton1Click:Connect(function()
-
-			make("UICorner", {Parent = grab, CornerRadius = UDim.new(1, 0)})				setState(not isOn)
-
-						end)
-
-			local draggingSlider = false			
-
-						return {Get = function() return isOn end, Set = setState}
-
-			local function updateSlider(x)		end
-
-				local rel = math.clamp((x - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)		
-
-				local value = min + (max - min) * rel		-- ================== SLIDER ==================
-
-				label.Text = text .. " — " .. string.format("%.1f", value)		function items:AddSlider(text, min, max, default, callback)
-
-				tween(fill, {Size = UDim2.new(rel, 0, 1, 0)}, Luma.Anim.Slide)			min, max, default = min or 0, max or 100, default or (min + max) / 2
-
-				tween(grab, {Position = UDim2.new(rel, -8, 0.5, -8)}, Luma.Anim.Slide)			
-
-				if callback then pcall(callback, value) end			local wrap = make("Frame", {
-
-			end				BackgroundTransparency = 1,
-
-							Size = UDim2.new(1, 0, 0, 64),
-
-			grab.InputBegan:Connect(function(input)				Parent = items,
-
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then			})
-
-					draggingSlider = true			
-
-					playSound("SliderGrab")			local label = make("TextLabel", {
-
-					tween(grab, {Size = UDim2.new(0, 20, 0, 20)}, Luma.Anim.Click)				BackgroundTransparency = 1,
-
-				end				Text = text .. " — " .. string.format("%.2f", default),
-
-			end)				TextColor3 = Luma.Theme.PrimaryText,
-
-							Font = Enum.Font.Gotham,
-
-			UserInputService.InputEnded:Connect(function(input)				TextSize = 14,
-
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then				TextXAlignment = Enum.TextXAlignment.Left,
-
-					draggingSlider = false				Position = UDim2.new(0, 0, 0, 0),
-
-					tween(grab, {Size = UDim2.new(0, 16, 0, 16)}, Luma.Anim.Click * 1.5, Enum.EasingStyle.Elastic)				Size = UDim2.new(1, 0, 0, 20),
-
-				end				Parent = wrap,
-
-			end)			})
-
-						
-
-			UserInputService.InputChanged:Connect(function(input)			local sliderBg = make("Frame", {
-
-				if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then				BackgroundColor3 = Color3.fromRGB(40, 40, 48),
-
-					updateSlider(input.Position.X)				Size = UDim2.new(1, 0, 0, 14),
-
-				end				Position = UDim2.new(0, 0, 0, 28),
-
-			end)				Parent = wrap,
-
-							BorderSizePixel = 0,
-
-			return {Get = function() return tonumber(label.Text:match("— (.+)")) or default end}			})
-
-		end			make("UICorner", {Parent = sliderBg, CornerRadius = UDim.new(1, 0)})
-
-					
-
-		-- ═════════════════════════════════════════════════════════════			local fill = make("Frame", {
-
-		-- TEXTBOX COMPONENT				BackgroundColor3 = Luma.Theme.Accent,
-
-		-- ═════════════════════════════════════════════════════════════				Size = UDim2.new((default - min) / (max - min), 0, 1, 0),
-
-						Parent = sliderBg,
-
-		function items:AddTextbox(placeholder, callback)				BorderSizePixel = 0,
-
-			local box = make("TextBox", {			})
-
-				Text = "",			make("UICorner", {Parent = fill, CornerRadius = UDim.new(1, 0)})
-
-				PlaceholderText = placeholder or "Enter text...",			
-
-				BackgroundColor3 = Luma.Theme.Hover,			local grab = make("TextButton", {
-
-				TextColor3 = Luma.Theme.TextPrimary,				BackgroundColor3 = Luma.Theme.Accent,
-
-				PlaceholderColor3 = Luma.Theme.TextSecondary,				Text = "",
-
-				Font = Enum.Font.Gotham,				Size = UDim2.new(0, 20, 0, 20),
-
-				TextSize = 13,				Position = UDim2.new((default - min) / (max - min), -10, 0.5, -10),
-
-				Size = UDim2.new(1, 0, 0, 34),				Parent = sliderBg,
-
-				Parent = items,				BorderSizePixel = 0,
-
-				BorderSizePixel = 0,				ZIndex = 10,
-
-				ClearTextOnFocus = false,			})
-
-			})			make("UICorner", {Parent = grab, CornerRadius = UDim.new(1, 0)})
-
-			make("UICorner", {Parent = box, CornerRadius = UDim.new(0, 6)})			
-
-						local function updateValue(x)
-
-			box.FocusLost:Connect(function(enterPressed)				local rel = math.clamp((x - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
-
-				if enterPressed and callback then				local value = min + (max - min) * rel
-
-					pcall(callback, box.Text)				label.Text = text .. " — " .. string.format("%.2f", value)
-
-				end				tween(fill, {Size = UDim2.new(rel, 0, 1, 0)}, Luma.Anim.SliderTween, Enum.EasingStyle.Sine)
-
-			end)				tween(grab, {Position = UDim2.new(rel, -10, 0.5, -10)}, Luma.Anim.SliderTween, Enum.EasingStyle.Sine)
-
-							if callback then pcall(callback, value) end
-
-			return box				return value
-
-		end			end
-
-					
-
-		-- ═════════════════════════════════════════════════════════════			local dragging = false
-
-		-- DROPDOWN COMPONENT			
-
-		-- ═════════════════════════════════════════════════════════════			grab.MouseButton1Down:Connect(function()
-
-						dragging = true
-
-		function items:AddDropdown(text, options, default, callback)				playSound("SliderGrab")
-
-			options = options or {}				tween(grab, {Size = UDim2.new(0, 24, 0, 24)}, Luma.Anim.ButtonPress, Enum.EasingStyle.Quad)
-
-						end)
-
-			local wrap = make("Frame", {			
-
-				BackgroundTransparency = 1,			UserInputService.InputEnded:Connect(function(input)
-
-				Size = UDim2.new(1, 0, 0, 0),				if dragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-
-				Parent = items,					dragging = false
-
-			})					tween(grab, {Size = UDim2.new(0, 20, 0, 20)}, Luma.Anim.ButtonPress * 1.5, Enum.EasingStyle.Elastic)
-
-			wrap.AutomaticSize = Enum.AutomaticSize.Y				end
-
-						end)
-
-			local label = make("TextLabel", {			
-
-				Text = text,			UserInputService.InputChanged:Connect(function(input)
-
-				BackgroundTransparency = 1,				if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-
-				TextColor3 = Luma.Theme.TextPrimary,					updateValue(input.Position.X)
-
-				Font = Enum.Font.Gotham,				end
-
-				TextSize = 13,			end)
-
-				Position = UDim2.new(0, 0, 0, 0),			
-
-				Size = UDim2.new(1, 0, 0, 20),			return {Get = function() return tonumber(label.Text:match("— (.+)")) or default end}
-
-				Parent = wrap,		end
-
-			})		
-
-					-- ================== TEXTBOX ==================
-
-			local selected = default or (options[1] or "None")		function items:AddTextbox(placeholder, callback)
-
-						local box = make("TextBox", {
-
-			local btn = make("TextButton", {				Text = "",
-
-				Text = tostring(selected),				PlaceholderText = placeholder or "Enter text...",
-
-				BackgroundColor3 = Luma.Theme.Hover,				BackgroundColor3 = Color3.fromRGB(32, 32, 38),
-
-				TextColor3 = Luma.Theme.TextPrimary,				TextColor3 = Luma.Theme.PrimaryText,
-
-				Font = Enum.Font.Gotham,				PlaceholderColor3 = Luma.Theme.SecondaryText,
-
-				TextSize = 13,				Font = Enum.Font.Gotham,
-
-				Size = UDim2.new(1, 0, 0, 34),				TextSize = 14,
-
-				Position = UDim2.new(0, 0, 0, 24),				Size = UDim2.new(1, 0, 0, 36),
-
-				Parent = wrap,				Parent = items,
-
-				BorderSizePixel = 0,				BorderSizePixel = 0,
-
-				AutoButtonColor = false,				ClearTextOnFocus = false,
-
-			})			})
-
-			make("UICorner", {Parent = btn, CornerRadius = UDim.new(0, 6)})			make("UICorner", {Parent = box, CornerRadius = UDim.new(0, 6)})
-
-						make("UIStroke", {Parent = box, Color = Luma.Theme.Accent, Transparency = 0.85, Thickness = 1})
-
-			local listFrame = make("Frame", {			
-
-				BackgroundColor3 = Luma.Theme.Surface,			box.FocusLost:Connect(function(enterPressed)
-
-				Size = UDim2.new(1, 0, 0, 0),				if enterPressed and callback then
-
-				Position = UDim2.new(0, 0, 0, 62),					pcall(callback, box.Text)
-
-				Parent = wrap,				end
-
-				ClipsDescendants = true,			end)
-
-				Visible = false,			
-
-				BorderSizePixel = 0,			return box
-
-				ZIndex = 100,		end
-
-			})		
-
-			make("UICorner", {Parent = listFrame, CornerRadius = UDim.new(0, 6)})		-- ================== DROPDOWN ==================
-
-					function items:AddDropdown(text, options, default, callback, opts)
-
-			local listLayout = make("UIListLayout", {Parent = listFrame})			options = options or {}
-
-			listLayout.Padding = UDim.new(0, 4)			opts = opts or {}
-
-			listLayout.FillDirection = Enum.FillDirection.Vertical			
-
-						local wrap = make("Frame", {
-
-			make("UIPadding", {				BackgroundTransparency = 1,
-
-				Parent = listFrame,				Size = UDim2.new(1, 0, 0, 0),
-
-				PaddingLeft = UDim.new(0, 4),				Parent = items,
-
-				PaddingRight = UDim.new(0, 4),			})
-
-				PaddingTop = UDim.new(0, 4),			wrap.AutomaticSize = Enum.AutomaticSize.Y
-
-				PaddingBottom = UDim.new(0, 4),			
-
-			})			local label = make("TextLabel", {
-
-							BackgroundTransparency = 1,
-
-			local function buildList()				Text = text,
-
-				for _, child in ipairs(listFrame:GetChildren()) do				TextColor3 = Luma.Theme.PrimaryText,
-
-					if child ~= listLayout and child:IsA("TextButton") then				Font = Enum.Font.Gotham,
-
-						child:Destroy()				TextSize = 14,
-
-					end				TextXAlignment = Enum.TextXAlignment.Left,
-
-				end				Position = UDim2.new(0, 0, 0, 0),
-
-								Size = UDim2.new(1, 0, 0, 20),
-
-				local count = 0				Parent = wrap,
-
-				for _, opt in ipairs(options) do			})
-
-					count = count + 1			
-
-								local selected = {value = default or options[1]}
-
-					local optBtn = make("TextButton", {			
-
-						Text = tostring(opt),			local btn = make("TextButton", {
-
-						BackgroundColor3 = selected == opt and Luma.Theme.Accent or Luma.Theme.Hover,				Text = tostring(selected.value),
-
-						TextColor3 = Luma.Theme.TextPrimary,				BackgroundColor3 = Color3.fromRGB(32, 32, 38),
-
-						Font = Enum.Font.Gotham,				TextColor3 = Luma.Theme.PrimaryText,
-
-						TextSize = 12,				Font = Enum.Font.Gotham,
-
-						Size = UDim2.new(1, 0, 0, 28),				TextSize = 14,
-
-						Parent = listFrame,				Size = UDim2.new(1, 0, 0, 36),
-
-						BorderSizePixel = 0,				Position = UDim2.new(0, 0, 0, 24),
-
-						AutoButtonColor = false,				Parent = wrap,
-
-					})				BorderSizePixel = 0,
-
-					make("UICorner", {Parent = optBtn, CornerRadius = UDim.new(0, 4)})				AutoButtonColor = false,
-
-								})
-
-					optBtn.MouseButton1Click:Connect(function()			make("UICorner", {Parent = btn, CornerRadius = UDim.new(0, 6)})
-
-						selected = opt			make("UIStroke", {Parent = btn, Color = Luma.Theme.Accent, Transparency = 0.85, Thickness = 1})
-
-						btn.Text = tostring(opt)			
-
-						buildList()			local listFrame = make("Frame", {
-
-						tween(listFrame, {Size = UDim2.new(1, 0, 0, 0)}, Luma.Anim.Dropdown)				BackgroundColor3 = Color3.fromRGB(28, 28, 34),
-
-						task.delay(Luma.Anim.Dropdown, function()				Size = UDim2.new(1, 0, 0, 0),
-
-							if listFrame then listFrame.Visible = false end				Position = UDim2.new(0, 0, 0, 64),
-
-						end)				Parent = wrap,
-
-						if callback then pcall(callback, opt) end				ClipsDescendants = true,
-
-					end)				Visible = false,
-
-									BorderSizePixel = 0,
-
-					-- Hover				ZIndex = 100,
-
-					optBtn.MouseEnter:Connect(function()			})
-
-						if optBtn and optBtn.Parent then			make("UICorner", {Parent = listFrame, CornerRadius = UDim.new(0, 6)})
-
-							tween(optBtn, {BackgroundColor3 = Luma.Theme.Accent}, Luma.Anim.Hover)			
-
-						end			local listLayout = make("UIListLayout", {Parent = listFrame, Padding = UDim.new(0, 2)})
-
-					end)			
-
-					optBtn.MouseLeave:Connect(function()			local listPadding = make("UIPadding", {Parent = listFrame})
-
-						if optBtn and optBtn.Parent and selected ~= opt then			listPadding.PaddingLeft = UDim.new(0, 4)
-
-							tween(optBtn, {BackgroundColor3 = Luma.Theme.Hover}, Luma.Anim.Hover)			listPadding.PaddingRight = UDim.new(0, 4)
-
-						end			listPadding.PaddingTop = UDim.new(0, 4)
-
-					end)			listPadding.PaddingBottom = UDim.new(0, 4)
-
-				end			
-
-							local function buildList()
-
-				listFrame.Size = UDim2.new(1, 0, 0, math.min(count * 32, 200))				for _, child in ipairs(listFrame:GetChildren()) do
-
-			end					if child ~= listLayout and child ~= listPadding then
-
-									child:Destroy()
-
-			btn.MouseButton1Click:Connect(function()					end
-
-				if listFrame.Visible then				end
-
-					tween(listFrame, {Size = UDim2.new(1, 0, 0, 0)}, Luma.Anim.Dropdown)				
-
-					task.delay(Luma.Anim.Dropdown, function()				local entries = 0
-
-						if listFrame then listFrame.Visible = false end				for _, opt in ipairs(options) do
-
-					end)					entries = entries + 1
-
-				else					local optBtn = make("TextButton", {
-
-					playSound("DropdownOpen")						Text = tostring(opt),
-
-					listFrame.Visible = true						BackgroundColor3 = selected.value == opt and Luma.Theme.Accent or Color3.fromRGB(40, 40, 48),
-
-					buildList()						TextColor3 = Luma.Theme.PrimaryText,
-
-				end						Font = Enum.Font.Gotham,
-
-			end)						TextSize = 13,
-
-									Size = UDim2.new(1, 0, 0, 30),
-
-			-- Hover on button						Parent = listFrame,
-
-			btn.MouseEnter:Connect(function()						BorderSizePixel = 0,
-
-				if btn and btn.Parent then						AutoButtonColor = false,
-
-					tween(btn, {BackgroundColor3 = Luma.Theme.Accent}, Luma.Anim.Hover)					})
-
-				end					make("UICorner", {Parent = optBtn, CornerRadius = UDim.new(0, 4)})
-
-			end)					
-
-			btn.MouseLeave:Connect(function()					optBtn.MouseButton1Click:Connect(function()
-
-				if btn and btn.Parent then						selected.value = opt
-
-					tween(btn, {BackgroundColor3 = Luma.Theme.Hover}, Luma.Anim.Hover)						btn.Text = tostring(opt)
-
-				end						buildList()
-
-			end)						tween(listFrame, {Size = UDim2.new(1, 0, 0, 0)}, Luma.Anim.DropdownReveal)
-
-									task.delay(Luma.Anim.DropdownReveal, function()
-
-			return {Get = function() return selected end, Set = function(v) selected = v; btn.Text = tostring(v); buildList() end}							if listFrame then listFrame.Visible = false end
-
-		end						end)
-
-								if callback then pcall(callback, opt) end
-
-		-- ═════════════════════════════════════════════════════════════					end)
-
-		-- LABEL COMPONENT					
-
-		-- ═════════════════════════════════════════════════════════════					-- Stagger animation
-
-							optBtn.BackgroundTransparency = 1
-
-		function items:AddLabel(text)					optBtn.TextTransparency = 1
-
-			local lbl = make("TextLabel", {					task.delay(Luma.Anim.EntryStagger * (entries - 1), function()
-
-				Text = text,						if optBtn and optBtn.Parent then
-
-				BackgroundTransparency = 1,							tween(optBtn, {BackgroundTransparency = 0, TextTransparency = 0}, 0.18, Enum.EasingStyle.Quad)
-
-				TextColor3 = Luma.Theme.TextPrimary,						end
-
-				Font = Enum.Font.Gotham,					end)
-
-				TextSize = 13,				end
-
-				Size = UDim2.new(1, 0, 0, 30),				
-
-				TextWrapped = true,				listFrame.Size = UDim2.new(1, 0, 0, math.min(entries * 32 + 8, 300))
-
-				Parent = items,			end
-
-			})			
-
-			return lbl			btn.MouseButton1Click:Connect(function()
-
-		end				if listFrame.Visible then
-
-							tween(listFrame, {Size = UDim2.new(1, 0, 0, 0)}, Luma.Anim.DropdownReveal)
-
-		return items					task.delay(Luma.Anim.DropdownReveal, function()
-
-	end						if listFrame then listFrame.Visible = false end
-
-						end)
-
-	table.insert(self.Tabs, tab)				else
-
-	return tab					playSound("DropdownOpen")
-
-end					listFrame.Visible = true
-
-					buildList()
-
--- ╔═══════════════════════════════════════════════════════════════════════╗					tween(listFrame, {Size = listFrame.Size}, Luma.Anim.DropdownReveal)
-
--- ║ NOTIFICATIONS - Toast system with queue                              ║				end
-
--- ╚═══════════════════════════════════════════════════════════════════════╝			end)
-
-			
-
-function Luma:Notify(title, message, duration)			return {Get = function() return selected.value end, Set = function(v) selected.value = v; btn.Text = tostring(v); buildList() end}
-
-	playSound("NotifyShow")		end
-
-			
-
-	table.insert(self._notifications, {title = title, message = message, duration = duration or 4})		-- ================== KEYBIND ==================
-
-			function items:AddKeybind(text, defaultKey, callback)
-
-	if self._notifyActive then return end			local key = defaultKey or "None"
-
-	self._notifyActive = true			
-
-				local wrap = make("Frame", {
-
-	while #self._notifications > 0 do				BackgroundTransparency = 1,
-
-		local notif = table.remove(self._notifications, 1)				Size = UDim2.new(1, 0, 0, 38),
-
-						Parent = items,
-
-		local frame = make("Frame", {			})
-
-			Size = UDim2.new(0, 320, 0, 80),			
-
-			BackgroundColor3 = Luma.Theme.Surface,			local label = make("TextLabel", {
-
-			BorderSizePixel = 0,				BackgroundTransparency = 1,
-
-			AnchorPoint = Vector2.new(1, 0),				Text = text,
-
-			Position = UDim2.new(1, 20, 0, 20),				TextColor3 = Luma.Theme.PrimaryText,
-
-			Parent = self.ScreenGui,				Font = Enum.Font.Gotham,
-
-			ZIndex = 500,				TextSize = 14,
-
-		})				TextXAlignment = Enum.TextXAlignment.Left,
-
-		make("UICorner", {Parent = frame, CornerRadius = UDim.new(0, 8)})				Position = UDim2.new(0, 0, 0, 8),
-
-		make("UIStroke", {Parent = frame, Color = Luma.Theme.Accent, Thickness = 2})				Size = UDim2.new(1, -140, 0, 20),
-
-						Parent = wrap,
-
-		local titleLbl = make("TextLabel", {			})
-
-			Text = notif.title,			
-
-			BackgroundTransparency = 1,			local keyBtn = make("TextButton", {
-
-			TextColor3 = Luma.Theme.TextPrimary,				Text = tostring(key),
-
-			Font = Enum.Font.GothamBold,				BackgroundColor3 = Color3.fromRGB(32, 32, 38),
-
-			TextSize = 14,				TextColor3 = Luma.Theme.Accent,
-
-			Position = UDim2.new(0, 12, 0, 8),				Font = Enum.Font.GothamBold,
-
-			Size = UDim2.new(1, -24, 0, 20),				TextSize = 13,
-
-			Parent = frame,				Size = UDim2.new(0, 130, 0, 24),
-
-		})				Position = UDim2.new(1, -134, 0, 7),
-
-						Parent = wrap,
-
-		local msgLbl = make("TextLabel", {				BorderSizePixel = 0,
-
-			Text = notif.message,				AutoButtonColor = false,
-
-			BackgroundTransparency = 1,			})
-
-			TextColor3 = Luma.Theme.TextSecondary,			make("UICorner", {Parent = keyBtn, CornerRadius = UDim.new(0, 6)})
-
-			Font = Enum.Font.Gotham,			
-
-			TextSize = 12,			local listening = false
-
-			Position = UDim2.new(0, 12, 0, 32),			local conn
-
-			Size = UDim2.new(1, -24, 0, 40),			
-
-			TextWrapped = true,			keyBtn.MouseButton1Click:Connect(function()
-
-			Parent = frame,				if listening then return end
-
-		})				listening = true
-
-						keyBtn.Text = "Listening..."
-
-		-- Slide in				keyBtn.TextColor3 = Color3.fromRGB(255, 152, 0)
-
-		frame.Position = UDim2.new(1, 340, 0, 20)				
-
-		tween(frame, {Position = UDim2.new(1, -20, 0, 20)}, Luma.Anim.Notify)				conn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-
-							if gameProcessed then return end
-
-		task.wait(notif.duration)					if input.KeyCode then
-
-								key = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
-
-		-- Slide out						keyBtn.Text = key
-
-		tween(frame, {Position = UDim2.new(1, 340, 0, 20)}, Luma.Anim.Notify)						keyBtn.TextColor3 = Luma.Theme.Accent
-
-		task.delay(Luma.Anim.Notify, function()						listening = false
-
-			if frame and frame.Parent then frame:Destroy() end						if conn then conn:Disconnect() end
-
-		end)						if callback then pcall(callback, key) end
-
-							end
-
-		task.wait(0.2)				end)
-
-	end			end)
-
-				
-
-	self._notifyActive = false			return {Get = function() return key end}
-
-end		end
-
-		
-
--- ╔═══════════════════════════════════════════════════════════════════════╗		-- ================== COLOR PICKER ==================
-
--- ║ THEMING - Easy color changes                                         ║		function items:AddColorPicker(text, defaultColor, callback)
-
--- ╚═══════════════════════════════════════════════════════════════════════╝			defaultColor = defaultColor or Color3.fromRGB(120, 80, 255)
-
-			
-
-function Luma:SetTheme(colors)			local wrap = make("Frame", {
-
-	for k, v in pairs(colors) do				BackgroundTransparency = 1,
-
-		Luma.Theme[k] = v				Size = UDim2.new(1, 0, 0, 0),
-
-	end				Parent = items,
-
-end			})
-
-			wrap.AutomaticSize = Enum.AutomaticSize.Y
-
--- ╔═══════════════════════════════════════════════════════════════════════╗			
-
--- ║ SETTINGS - Persistence                                               ║			local label = make("TextLabel", {
-
--- ╚═══════════════════════════════════════════════════════════════════════╝				BackgroundTransparency = 1,
-
-				Text = text,
-
-function Luma:SetSetting(key, value)				TextColor3 = Luma.Theme.PrimaryText,
-
-	self.Settings[key] = value				Font = Enum.Font.Gotham,
-
-end				TextSize = 14,
-
-				Position = UDim2.new(0, 0, 0, 0),
-
-function Luma:GetSetting(key, default)				Size = UDim2.new(1, 0, 0, 20),
-
-	return self.Settings[key] or default				Parent = wrap,
-
-end			})
-
-			
-
-function Luma:ExportSettings()			local preview = make("Frame", {
-
-	return HttpService:JSONEncode(self.Settings)				BackgroundColor3 = defaultColor,
-
-end				Size = UDim2.new(1, 0, 0, 50),
-
-				Position = UDim2.new(0, 0, 0, 24),
-
-function Luma:ImportSettings(json)				Parent = wrap,
-
-	local ok, tbl = pcall(function() return HttpService:JSONDecode(json) end)				BorderSizePixel = 0,
-
-	if ok and type(tbl) == "table" then			})
-
-		self.Settings = tbl			make("UICorner", {Parent = preview, CornerRadius = UDim.new(0, 6)})
-
-		return true			make("UIStroke", {Parent = preview, Color = Luma.Theme.Accent, Thickness = 2})
-
-	end			
-
-	return false			return {Get = function() return preview.BackgroundColor3 end}
-
-end		end
-
-		
-
-function Luma:SaveToFile(filename)		return items
-
-	if not writefile then return false end	end
-
-	writefile(filename, self:ExportSettings())	
-
-	return true	table.insert(self.Tabs, tab)
-
-end	return tab
-
+-- Utility Functions
+local function tween(instance, properties, duration, style, direction)
+    style = style or Enum.EasingStyle.Quint
+    direction = direction or Enum.EasingDirection.Out
+    local tweenInfo = TweenInfo.new(duration, style, direction)
+    local tween = TweenService:Create(instance, tweenInfo, properties)
+    tween:Play()
+    return tween
 end
 
-function Luma:LoadFromFile(filename)
+local function ripple(button, x, y)
+    local circle = Instance.new("ImageLabel")
+    circle.Image = "rbxassetid://266543268"
+    circle.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    circle.ImageTransparency = 0.5
+    circle.BackgroundTransparency = 1
+    circle.ZIndex = 10
+    circle.Position = UDim2.new(0, x, 0, y)
+    circle.Size = UDim2.new(0, 0, 0, 0)
+    circle.Parent = button
 
-	if not readfile or not isfile(filename) then return false end-- ================== NOTIFICATIONS ==================
+    tween(circle, {
+        Size = UDim2.new(0, 500, 0, 500),
+        Position = UDim2.new(0, x - 250, 0, y - 250),
+        ImageTransparency = 1
+    }, 0.6, Enum.EasingStyle.Exponential)
 
-	return self:ImportSettings(readfile(filename))function Luma:Notify(title, text, duration)
-
-end	playSound("NotifyShow")
-
-	self._notifyQueue = self._notifyQueue or {}
-
-return Luma	table.insert(self._notifyQueue, {title = title, text = text, time = duration or 4})
-
-	
-	if self._notifyRunning then return end
-	self._notifyRunning = true
-	
-	while #self._notifyQueue > 0 do
-		local item = table.remove(self._notifyQueue, 1)
-		
-		local notif = make("Frame", {
-			Size = UDim2.new(0, 320, 0, 80),
-			BackgroundColor3 = Color3.fromRGB(28, 28, 34),
-			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, 20, 0, 20),
-			Parent = self.ScreenGui,
-			ZIndex = 500,
-			BorderSizePixel = 0,
-		})
-		make("UICorner", {Parent = notif, CornerRadius = UDim.new(0, 8)})
-		make("UIStroke", {Parent = notif, Color = Luma.Theme.Accent, Thickness = 2})
-		
-		local titleLbl = make("TextLabel", {
-			Text = item.title,
-			BackgroundTransparency = 1,
-			TextColor3 = Luma.Theme.PrimaryText,
-			Font = Enum.Font.GothamBold,
-			TextSize = 16,
-			Position = UDim2.new(0, 12, 0, 8),
-			Size = UDim2.new(1, -24, 0, 24),
-			Parent = notif,
-		})
-		
-		local textLbl = make("TextLabel", {
-			Text = text,
-			BackgroundTransparency = 1,
-			TextColor3 = Luma.Theme.SecondaryText,
-			Font = Enum.Font.Gotham,
-			TextSize = 13,
-			Position = UDim2.new(0, 12, 0, 36),
-			Size = UDim2.new(1, -24, 0, 36),
-			TextWrapped = true,
-			Parent = notif,
-		})
-		
-		-- Slide in
-		notif.Position = UDim2.new(1, 340, 0, 20)
-		notif.BackgroundTransparency = 1
-		tween(notif, {Position = UDim2.new(1, -20, 0, 20), BackgroundTransparency = 0}, 0.36, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-		
-		-- Text fade
-		titleLbl.TextTransparency = 1
-		textLbl.TextTransparency = 1
-		tween(titleLbl, {TextTransparency = 0}, 0.36)
-		tween(textLbl, {TextTransparency = 0}, 0.36)
-		
-		-- Wait duration
-		task.wait(item.time)
-		
-		-- Slide out
-		tween(notif, {Position = UDim2.new(1, 340, 0, 20), BackgroundTransparency = 1}, 0.28, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
-		task.delay(0.28, function()
-			if notif and notif.Parent then notif:Destroy() end
-		end)
-		
-		task.wait(0.4)
-	end
-	
-	self._notifyRunning = false
+    task.delay(0.6, function()
+        circle:Destroy()
+    end)
 end
 
--- ================== THEMING ==================
-function Luma:SetTheme(theme)
-	for k, v in pairs(theme) do
-		Luma.Theme[k] = v
-	end
+local function createCorner(parent, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 12)
+    corner.Parent = parent
+    return corner
 end
 
--- ================== SETTINGS ==================
-function Luma:SetSetting(key, value)
-	self.Settings = self.Settings or {}
-	self.Settings[key] = value
+local function createStroke(parent, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or Theme.Border
+    stroke.Thickness = thickness or 1
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Parent = parent
+    return stroke
 end
 
-function Luma:GetSetting(key, default)
-	self.Settings = self.Settings or {}
-	return self.Settings[key] or default
+local function createGlow(parent)
+    local glow = Instance.new("ImageLabel")
+    glow.Image = "rbxassetid://4996891970"
+    glow.ImageColor3 = Theme.Accent
+    glow.ImageTransparency = 0.7
+    glow.Size = UDim2.new(1, 40, 1, 40)
+    glow.Position = UDim2.new(0, -20, 0, -20)
+    glow.BackgroundTransparency = 1
+    glow.ZIndex = 0
+    glow.Parent = parent
+    return glow
 end
 
-function Luma:ExportSettings()
-	return HttpService:JSONEncode(self.Settings or {})
+-- Main Library
+function LumaHub:New(title)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "LumaHub"
+    gui.ResetOnSpawn = false
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent = player:WaitForChild("PlayerGui")
+
+    local main = Instance.new("Frame")
+    main.Name = "Main"
+    main.Size = UDim2.new(0, 0, 0, 0)
+    main.Position = UDim2.new(0.5, 0, 0.5, 0)
+    main.AnchorPoint = Vector2.new(0.5, 0.5)
+    main.BackgroundColor3 = Theme.Background
+    main.BorderSizePixel = 0
+    main.ClipsDescendants = true
+    main.Parent = gui
+
+    createCorner(main, 16)
+    createStroke(main, Theme.Border, 2)
+    createGlow(main)
+
+    -- Header
+    local header = Instance.new("Frame")
+    header.Name = "Header"
+    header.Size = UDim2.new(1, 0, 0, 60)
+    header.BackgroundColor3 = Theme.Secondary
+    header.BorderSizePixel = 0
+    header.Parent = main
+
+    createCorner(header, 16)
+
+    local headerGradient = Instance.new("UIGradient")
+    headerGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Accent),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(75, 0, 130))
+    })
+    headerGradient.Rotation = 45
+    headerGradient.Parent = header
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(1, -80, 1, 0)
+    titleLabel.Position = UDim2.new(0, 20, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title or "Luma Hub"
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 24
+    titleLabel.TextColor3 = Theme.Text
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = header
+
+    -- Close Button
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Name = "CloseButton"
+    closeBtn.Size = UDim2.new(0, 40, 0, 40)
+    closeBtn.Position = UDim2.new(1, -50, 0, 10)
+    closeBtn.BackgroundColor3 = Theme.Danger
+    closeBtn.Text = "✕"
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 20
+    closeBtn.TextColor3 = Theme.Text
+    closeBtn.BorderSizePixel = 0
+    closeBtn.Parent = header
+
+    createCorner(closeBtn, 10)
+
+    closeBtn.MouseButton1Click:Connect(function()
+        tween(main, {Size = UDim2.new(0, 0, 0, 0)}, 0.3)
+        task.wait(0.3)
+        gui:Destroy()
+    end)
+
+    closeBtn.MouseEnter:Connect(function()
+        tween(closeBtn, {BackgroundColor3 = Color3.fromRGB(255, 96, 80)}, 0.2)
+        tween(closeBtn, {Size = UDim2.new(0, 44, 0, 44)}, 0.2, Enum.EasingStyle.Back)
+    end)
+
+    closeBtn.MouseLeave:Connect(function()
+        tween(closeBtn, {BackgroundColor3 = Theme.Danger}, 0.2)
+        tween(closeBtn, {Size = UDim2.new(0, 40, 0, 40)}, 0.2, Enum.EasingStyle.Back)
+    end)
+
+    -- Tab Container
+    local tabContainer = Instance.new("Frame")
+    tabContainer.Name = "TabContainer"
+    tabContainer.Size = UDim2.new(0, 150, 1, -70)
+    tabContainer.Position = UDim2.new(0, 10, 0, 65)
+    tabContainer.BackgroundColor3 = Theme.Secondary
+    tabContainer.BorderSizePixel = 0
+    tabContainer.Parent = main
+
+    createCorner(tabContainer, 12)
+
+    local tabList = Instance.new("UIListLayout")
+    tabList.Padding = UDim.new(0, 8)
+    tabList.SortOrder = Enum.SortOrder.LayoutOrder
+    tabList.Parent = tabContainer
+
+    local tabPadding = Instance.new("UIPadding")
+    tabPadding.PaddingTop = UDim.new(0, 10)
+    tabPadding.PaddingBottom = UDim.new(0, 10)
+    tabPadding.PaddingLeft = UDim.new(0, 10)
+    tabPadding.PaddingRight = UDim.new(0, 10)
+    tabPadding.Parent = tabContainer
+
+    -- Content Container
+    local contentContainer = Instance.new("Frame")
+    contentContainer.Name = "ContentContainer"
+    contentContainer.Size = UDim2.new(1, -180, 1, -70)
+    contentContainer.Position = UDim2.new(0, 170, 0, 65)
+    contentContainer.BackgroundTransparency = 1
+    contentContainer.BorderSizePixel = 0
+    contentContainer.Parent = main
+
+    -- Dragging functionality
+    local dragging = false
+    local dragStart, startPos
+
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = main.Position
+        end
+    end)
+
+    header.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            tween(main, {
+                Position = UDim2.new(
+                    startPos.X.Scale,
+                    startPos.X.Offset + delta.X,
+                    startPos.Y.Scale,
+                    startPos.Y.Offset + delta.Y
+                )
+            }, 0.1, Enum.EasingStyle.Linear)
+        end
+    end)
+
+    -- Animate opening
+    tween(main, {Size = UDim2.new(0, 700, 0, 500)}, 0.5, Enum.EasingStyle.Back)
+
+    local library = setmetatable({
+        GUI = gui,
+        Main = main,
+        TabContainer = tabContainer,
+        ContentContainer = contentContainer,
+        Tabs = {},
+        CurrentTab = nil
+    }, LumaHub)
+
+    return library
 end
 
-function Luma:ImportSettings(json)
-	local ok, result = pcall(function() return HttpService:JSONDecode(json) end)
-	if ok and type(result) == "table" then
-		self.Settings = result
-		return true
-	end
-	return false
+function LumaHub:CreateTab(name, icon)
+    local tabButton = Instance.new("TextButton")
+    tabButton.Name = name
+    tabButton.Size = UDim2.new(1, 0, 0, 45)
+    tabButton.BackgroundColor3 = Theme.Background
+    tabButton.BorderSizePixel = 0
+    tabButton.Text = ""
+    tabButton.AutoButtonColor = false
+    tabButton.Parent = self.TabContainer
+
+    createCorner(tabButton, 10)
+
+    local tabIcon = Instance.new("TextLabel")
+    tabIcon.Size = UDim2.new(0, 30, 1, 0)
+    tabIcon.Position = UDim2.new(0, 10, 0, 0)
+    tabIcon.BackgroundTransparency = 1
+    tabIcon.Text = icon or "📦"
+    tabIcon.Font = Enum.Font.GothamBold
+    tabIcon.TextSize = 20
+    tabIcon.TextColor3 = Theme.SubText
+    tabIcon.Parent = tabButton
+
+    local tabLabel = Instance.new("TextLabel")
+    tabLabel.Size = UDim2.new(1, -50, 1, 0)
+    tabLabel.Position = UDim2.new(0, 45, 0, 0)
+    tabLabel.BackgroundTransparency = 1
+    tabLabel.Text = name
+    tabLabel.Font = Enum.Font.GothamSemibold
+    tabLabel.TextSize = 14
+    tabLabel.TextColor3 = Theme.SubText
+    tabLabel.TextXAlignment = Enum.TextXAlignment.Left
+    tabLabel.Parent = tabButton
+
+    local tabContent = Instance.new("ScrollingFrame")
+    tabContent.Name = name .. "Content"
+    tabContent.Size = UDim2.new(1, 0, 1, 0)
+    tabContent.BackgroundTransparency = 1
+    tabContent.BorderSizePixel = 0
+    tabContent.ScrollBarThickness = 4
+    tabContent.ScrollBarImageColor3 = Theme.Accent
+    tabContent.Visible = false
+    tabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
+    tabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    tabContent.Parent = self.ContentContainer
+
+    local contentList = Instance.new("UIListLayout")
+    contentList.Padding = UDim.new(0, 12)
+    contentList.SortOrder = Enum.SortOrder.LayoutOrder
+    contentList.Parent = tabContent
+
+    local contentPadding = Instance.new("UIPadding")
+    contentPadding.PaddingTop = UDim.new(0, 10)
+    contentPadding.PaddingBottom = UDim.new(0, 10)
+    contentPadding.PaddingLeft = UDim.new(0, 10)
+    contentPadding.PaddingRight = UDim.new(0, 20)
+    contentPadding.Parent = tabContent
+
+    local function selectTab()
+        for _, tab in pairs(self.Tabs) do
+            tab.Button.BackgroundColor3 = Theme.Background
+            tab.Label.TextColor3 = Theme.SubText
+            tab.Icon.TextColor3 = Theme.SubText
+            tab.Content.Visible = false
+        end
+
+        tween(tabButton, {BackgroundColor3 = Theme.Accent}, 0.3)
+        tween(tabLabel, {TextColor3 = Theme.Text}, 0.3)
+        tween(tabIcon, {TextColor3 = Theme.Text}, 0.3)
+        tabContent.Visible = true
+        self.CurrentTab = name
+    end
+
+    tabButton.MouseButton1Click:Connect(function()
+        selectTab()
+        ripple(tabButton, tabButton.AbsoluteSize.X / 2, tabButton.AbsoluteSize.Y / 2)
+    end)
+
+    tabButton.MouseEnter:Connect(function()
+        if self.CurrentTab ~= name then
+            tween(tabButton, {BackgroundColor3 = Theme.Secondary}, 0.2)
+        end
+    end)
+
+    tabButton.MouseLeave:Connect(function()
+        if self.CurrentTab ~= name then
+            tween(tabButton, {BackgroundColor3 = Theme.Background}, 0.2)
+        end
+    end)
+
+    local tab = {
+        Button = tabButton,
+        Label = tabLabel,
+        Icon = tabIcon,
+        Content = tabContent,
+        Elements = {}
+    }
+
+    self.Tabs[name] = tab
+
+    if not self.CurrentTab then
+        selectTab()
+    end
+
+    return tab
 end
 
-function Luma:SaveToFile(filename)
-	if not writefile then return false end
-	local json = self:ExportSettings()
-	if json then
-		writefile(filename, json)
-		return true
-	end
-	return false
+function LumaHub:AddButton(tab, text, callback)
+    local button = Instance.new("TextButton")
+    button.Name = "Button"
+    button.Size = UDim2.new(1, 0, 0, 45)
+    button.BackgroundColor3 = Theme.Secondary
+    button.BorderSizePixel = 0
+    button.Text = text
+    button.Font = Enum.Font.GothamSemibold
+    button.TextSize = 14
+    button.TextColor3 = Theme.Text
+    button.AutoButtonColor = false
+    button.Parent = tab.Content
+
+    createCorner(button, 10)
+
+    button.MouseButton1Click:Connect(function()
+        ripple(button, button.AbsoluteSize.X / 2, button.AbsoluteSize.Y / 2)
+        pcall(callback)
+    end)
+
+    button.MouseEnter:Connect(function()
+        tween(button, {BackgroundColor3 = Theme.Accent}, 0.2)
+    end)
+
+    button.MouseLeave:Connect(function()
+        tween(button, {BackgroundColor3 = Theme.Secondary}, 0.2)
+    end)
+
+    table.insert(tab.Elements, button)
+    return button
 end
 
-function Luma:LoadFromFile(filename)
-	if not readfile or not isfile(filename) then return false end
-	local content = readfile(filename)
-	return self:ImportSettings(content)
+function LumaHub:AddToggle(tab, text, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Name = "Toggle"
+    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.BackgroundColor3 = Theme.Secondary
+    frame.BorderSizePixel = 0
+    frame.Parent = tab.Content
+
+    createCorner(frame, 10)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -70, 1, 0)
+    label.Position = UDim2.new(0, 15, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 14
+    label.TextColor3 = Theme.Text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Size = UDim2.new(0, 50, 0, 26)
+    toggleButton.Position = UDim2.new(1, -60, 0.5, -13)
+    toggleButton.BackgroundColor3 = default and Theme.Success or Theme.Border
+    toggleButton.BorderSizePixel = 0
+    toggleButton.Text = ""
+    toggleButton.AutoButtonColor = false
+    toggleButton.Parent = frame
+
+    createCorner(toggleButton, 13)
+
+    local toggleCircle = Instance.new("Frame")
+    toggleCircle.Size = UDim2.new(0, 20, 0, 20)
+    toggleCircle.Position = default and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+    toggleCircle.BackgroundColor3 = Theme.Text
+    toggleCircle.BorderSizePixel = 0
+    toggleCircle.Parent = toggleButton
+
+    createCorner(toggleCircle, 10)
+
+    local toggled = default or false
+
+    toggleButton.MouseButton1Click:Connect(function()
+        toggled = not toggled
+
+        tween(toggleButton, {
+            BackgroundColor3 = toggled and Theme.Success or Theme.Border
+        }, 0.3)
+
+        tween(toggleCircle, {
+            Position = toggled and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+        }, 0.3, Enum.EasingStyle.Back)
+
+        pcall(callback, toggled)
+    end)
+
+    toggleButton.MouseEnter:Connect(function()
+        tween(toggleCircle, {Size = UDim2.new(0, 22, 0, 22)}, 0.2)
+    end)
+
+    toggleButton.MouseLeave:Connect(function()
+        tween(toggleCircle, {Size = UDim2.new(0, 20, 0, 20)}, 0.2)
+    end)
+
+    table.insert(tab.Elements, frame)
+    return frame
 end
 
-return Luma
+function LumaHub:AddSlider(tab, text, min, max, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Name = "Slider"
+    frame.Size = UDim2.new(1, 0, 0, 60)
+    frame.BackgroundColor3 = Theme.Secondary
+    frame.BorderSizePixel = 0
+    frame.Parent = tab.Content
+
+    createCorner(frame, 10)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -70, 0, 20)
+    label.Position = UDim2.new(0, 15, 0, 8)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 14
+    label.TextColor3 = Theme.Text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Size = UDim2.new(0, 60, 0, 20)
+    valueLabel.Position = UDim2.new(1, -70, 0, 8)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.Text = tostring(default)
+    valueLabel.Font = Enum.Font.GothamBold
+    valueLabel.TextSize = 14
+    valueLabel.TextColor3 = Theme.Accent
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    valueLabel.Parent = frame
+
+    local sliderBack = Instance.new("Frame")
+    sliderBack.Size = UDim2.new(1, -30, 0, 6)
+    sliderBack.Position = UDim2.new(0, 15, 1, -20)
+    sliderBack.BackgroundColor3 = Theme.Background
+    sliderBack.BorderSizePixel = 0
+    sliderBack.Parent = frame
+
+    createCorner(sliderBack, 3)
+
+    local sliderFill = Instance.new("Frame")
+    sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    sliderFill.BackgroundColor3 = Theme.Accent
+    sliderFill.BorderSizePixel = 0
+    sliderFill.Parent = sliderBack
+
+    createCorner(sliderFill, 3)
+
+    local sliderButton = Instance.new("TextButton")
+    sliderButton.Size = UDim2.new(0, 18, 0, 18)
+    sliderButton.Position = UDim2.new((default - min) / (max - min), -9, 0.5, -9)
+    sliderButton.BackgroundColor3 = Theme.Text
+    sliderButton.BorderSizePixel = 0
+    sliderButton.Text = ""
+    sliderButton.AutoButtonColor = false
+    sliderButton.Parent = sliderBack
+
+    createCorner(sliderButton, 9)
+
+    local dragging = false
+
+    local function update(input)
+        local pos = math.clamp((input.Position.X - sliderBack.AbsolutePosition.X) / sliderBack.AbsoluteSize.X, 0, 1)
+        local value = math.floor(min + (max - min) * pos)
+
+        tween(sliderFill, {Size = UDim2.new(pos, 0, 1, 0)}, 0.1, Enum.EasingStyle.Linear)
+        tween(sliderButton, {Position = UDim2.new(pos, -9, 0.5, -9)}, 0.1, Enum.EasingStyle.Linear)
+        valueLabel.Text = tostring(value)
+
+        pcall(callback, value)
+    end
+
+    sliderButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            tween(sliderButton, {Size = UDim2.new(0, 22, 0, 22)}, 0.2)
+        end
+    end)
+
+    sliderButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+            tween(sliderButton, {Size = UDim2.new(0, 18, 0, 18)}, 0.2)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            update(input)
+        end
+    end)
+
+    sliderBack.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            update(input)
+        end
+    end)
+
+    table.insert(tab.Elements, frame)
+    return frame
+end
+
+function LumaHub:AddTextbox(tab, text, placeholder, callback)
+    local frame = Instance.new("Frame")
+    frame.Name = "Textbox"
+    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.BackgroundColor3 = Theme.Secondary
+    frame.BorderSizePixel = 0
+    frame.Parent = tab.Content
+
+    createCorner(frame, 10)
+
+    local textbox = Instance.new("TextBox")
+    textbox.Size = UDim2.new(1, -30, 1, -10)
+    textbox.Position = UDim2.new(0, 15, 0, 5)
+    textbox.BackgroundTransparency = 1
+    textbox.PlaceholderText = placeholder or text
+    textbox.Text = ""
+    textbox.Font = Enum.Font.GothamSemibold
+    textbox.TextSize = 14
+    textbox.TextColor3 = Theme.Text
+    textbox.PlaceholderColor3 = Theme.SubText
+    textbox.TextXAlignment = Enum.TextXAlignment.Left
+    textbox.ClearTextOnFocus = false
+    textbox.Parent = frame
+
+    textbox.Focused:Connect(function()
+        tween(frame, {BackgroundColor3 = Theme.Accent}, 0.2)
+    end)
+
+    textbox.FocusLost:Connect(function(enter)
+        tween(frame, {BackgroundColor3 = Theme.Secondary}, 0.2)
+        if enter then
+            pcall(callback, textbox.Text)
+        end
+    end)
+
+    table.insert(tab.Elements, frame)
+    return textbox
+end
+
+function LumaHub:AddLabel(tab, text)
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Size = UDim2.new(1, 0, 0, 30)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 13
+    label.TextColor3 = Theme.SubText
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = tab.Content
+
+    table.insert(tab.Elements, label)
+    return label
+end
+
+function LumaHub:AddDropdown(tab, text, options, callback)
+    local frame = Instance.new("Frame")
+    frame.Name = "Dropdown"
+    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.BackgroundColor3 = Theme.Secondary
+    frame.BorderSizePixel = 0
+    frame.Parent = tab.Content
+
+    createCorner(frame, 10)
+
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, 0, 1, 0)
+    button.BackgroundTransparency = 1
+    button.Text = ""
+    button.Parent = frame
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -40, 1, 0)
+    label.Position = UDim2.new(0, 15, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 14
+    label.TextColor3 = Theme.Text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local arrow = Instance.new("TextLabel")
+    arrow.Size = UDim2.new(0, 20, 1, 0)
+    arrow.Position = UDim2.new(1, -30, 0, 0)
+    arrow.BackgroundTransparency = 1
+    arrow.Text = "▼"
+    arrow.Font = Enum.Font.GothamBold
+    arrow.TextSize = 12
+    arrow.TextColor3 = Theme.SubText
+    arrow.Parent = frame
+
+    local dropdown = Instance.new("Frame")
+    dropdown.Name = "DropdownList"
+    dropdown.Size = UDim2.new(1, 0, 0, 0)
+    dropdown.Position = UDim2.new(0, 0, 1, 5)
+    dropdown.BackgroundColor3 = Theme.Secondary
+    dropdown.BorderSizePixel = 0
+    dropdown.ClipsDescendants = true
+    dropdown.Visible = false
+    dropdown.ZIndex = 5
+    dropdown.Parent = frame
+
+    createCorner(dropdown, 10)
+    createStroke(dropdown, Theme.Border, 1)
+
+    local dropdownList = Instance.new("UIListLayout")
+    dropdownList.Padding = UDim.new(0, 2)
+    dropdownList.SortOrder = Enum.SortOrder.LayoutOrder
+    dropdownList.Parent = dropdown
+
+    local dropdownPadding = Instance.new("UIPadding")
+    dropdownPadding.PaddingTop = UDim.new(0, 5)
+    dropdownPadding.PaddingBottom = UDim.new(0, 5)
+    dropdownPadding.PaddingLeft = UDim.new(0, 5)
+    dropdownPadding.PaddingRight = UDim.new(0, 5)
+    dropdownPadding.Parent = dropdown
+
+    local isOpen = false
+
+    for _, option in ipairs(options) do
+        local optionButton = Instance.new("TextButton")
+        optionButton.Size = UDim2.new(1, 0, 0, 35)
+        optionButton.BackgroundColor3 = Theme.Background
+        optionButton.Text = option
+        optionButton.Font = Enum.Font.Gotham
+        optionButton.TextSize = 13
+        optionButton.TextColor3 = Theme.Text
+        optionButton.AutoButtonColor = false
+        optionButton.Parent = dropdown
+
+        createCorner(optionButton, 8)
+
+        optionButton.MouseButton1Click:Connect(function()
+            label.Text = text .. ": " .. option
+            isOpen = false
+            tween(dropdown, {Size = UDim2.new(1, 0, 0, 0)}, 0.3, Enum.EasingStyle.Back)
+            tween(arrow, {Rotation = 0}, 0.3)
+            task.wait(0.3)
+            dropdown.Visible = false
+            pcall(callback, option)
+        end)
+
+        optionButton.MouseEnter:Connect(function()
+            tween(optionButton, {BackgroundColor3 = Theme.Accent}, 0.2)
+        end)
+
+        optionButton.MouseLeave:Connect(function()
+            tween(optionButton, {BackgroundColor3 = Theme.Background}, 0.2)
+        end)
+    end
+
+    button.MouseButton1Click:Connect(function()
+        isOpen = not isOpen
+        dropdown.Visible = true
+
+        if isOpen then
+            local height = math.min(#options * 37 + 10, 200)
+            tween(dropdown, {Size = UDim2.new(1, 0, 0, height)}, 0.3, Enum.EasingStyle.Back)
+            tween(arrow, {Rotation = 180}, 0.3)
+        else
+            tween(dropdown, {Size = UDim2.new(1, 0, 0, 0)}, 0.3, Enum.EasingStyle.Back)
+            tween(arrow, {Rotation = 0}, 0.3)
+            task.wait(0.3)
+            dropdown.Visible = false
+        end
+    end)
+
+    table.insert(tab.Elements, frame)
+    return frame
+end
+
+function LumaHub:AddColorPicker(tab, text, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Name = "ColorPicker"
+    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.BackgroundColor3 = Theme.Secondary
+    frame.BorderSizePixel = 0
+    frame.Parent = tab.Content
+
+    createCorner(frame, 10)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -60, 1, 0)
+    label.Position = UDim2.new(0, 15, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 14
+    label.TextColor3 = Theme.Text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local colorButton = Instance.new("TextButton")
+    colorButton.Size = UDim2.new(0, 35, 0, 35)
+    colorButton.Position = UDim2.new(1, -45, 0.5, -17.5)
+    colorButton.BackgroundColor3 = default or Color3.fromRGB(255, 255, 255)
+    colorButton.Text = ""
+    colorButton.AutoButtonColor = false
+    colorButton.Parent = frame
+
+    createCorner(colorButton, 8)
+    createStroke(colorButton, Theme.Border, 2)
+
+    local currentColor = default or Color3.fromRGB(255, 255, 255)
+
+    colorButton.MouseButton1Click:Connect(function()
+        -- Simple color picker (cycles through rainbow)
+        local hue = tick() % 5 / 5
+        currentColor = Color3.fromHSV(hue, 1, 1)
+        tween(colorButton, {BackgroundColor3 = currentColor}, 0.3)
+        pcall(callback, currentColor)
+    end)
+
+    colorButton.MouseEnter:Connect(function()
+        tween(colorButton, {Size = UDim2.new(0, 38, 0, 38)}, 0.2, Enum.EasingStyle.Back)
+    end)
+
+    colorButton.MouseLeave:Connect(function()
+        tween(colorButton, {Size = UDim2.new(0, 35, 0, 35)}, 0.2, Enum.EasingStyle.Back)
+    end)
+
+    -- Rainbow animation
+    RunService.RenderStepped:Connect(function()
+        local hue = (tick() % 10) / 10
+        colorButton.BackgroundColor3 = Color3.fromHSV(hue, 0.5, 1)
+    end)
+
+    table.insert(tab.Elements, frame)
+    return frame
+end
+
+function LumaHub:AddKeybind(tab, text, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Name = "Keybind"
+    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.BackgroundColor3 = Theme.Secondary
+    frame.BorderSizePixel = 0
+    frame.Parent = tab.Content
+
+    createCorner(frame, 10)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -100, 1, 0)
+    label.Position = UDim2.new(0, 15, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 14
+    label.TextColor3 = Theme.Text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    local keybindButton = Instance.new("TextButton")
+    keybindButton.Size = UDim2.new(0, 80, 0, 30)
+    keybindButton.Position = UDim2.new(1, -90, 0.5, -15)
+    keybindButton.BackgroundColor3 = Theme.Background
+    keybindButton.Text = default or "None"
+    keybindButton.Font = Enum.Font.GothamBold
+    keybindButton.TextSize = 12
+    keybindButton.TextColor3 = Theme.Accent
+    keybindButton.AutoButtonColor = false
+    keybindButton.Parent = frame
+
+    createCorner(keybindButton, 8)
+
+    local binding = false
+    local currentKey = default
+
+    keybindButton.MouseButton1Click:Connect(function()
+        binding = true
+        keybindButton.Text = "..."
+        tween(keybindButton, {BackgroundColor3 = Theme.Accent}, 0.2)
+    end)
+
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if binding and not gameProcessed then
+            if input.KeyCode ~= Enum.KeyCode.Unknown then
+                currentKey = input.KeyCode.Name
+                keybindButton.Text = currentKey
+                binding = false
+                tween(keybindButton, {BackgroundColor3 = Theme.Background}, 0.2)
+                pcall(callback, input.KeyCode)
+            end
+        elseif not binding and currentKey and input.KeyCode.Name == currentKey then
+            pcall(callback, input.KeyCode)
+        end
+    end)
+
+    table.insert(tab.Elements, frame)
+    return frame
+end
+
+function LumaHub:Notify(title, text, duration, type)
+    local notif = Instance.new("Frame")
+    notif.Size = UDim2.new(0, 0, 0, 80)
+    notif.Position = UDim2.new(1, 10, 1, -90)
+    notif.BackgroundColor3 = Theme.Secondary
+    notif.BorderSizePixel = 0
+    notif.ZIndex = 10
+    notif.Parent = self.GUI
+
+    createCorner(notif, 12)
+    createStroke(notif, Theme.Border, 2)
+
+    local icon = Instance.new("TextLabel")
+    icon.Size = UDim2.new(0, 50, 1, 0)
+    icon.BackgroundTransparency = 1
+    icon.Font = Enum.Font.GothamBold
+    icon.TextSize = 28
+    icon.TextColor3 = type == "success" and Theme.Success or type == "error" and Theme.Danger or type == "warning" and Theme.Warning or Theme.Accent
+    icon.Text = type == "success" and "✓" or type == "error" and "✕" or type == "warning" and "⚠" or "ℹ"
+    icon.Parent = notif
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -60, 0, 25)
+    titleLabel.Position = UDim2.new(0, 55, 0, 10)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 15
+    titleLabel.TextColor3 = Theme.Text
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = notif
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, -60, 0, 35)
+    textLabel.Position = UDim2.new(0, 55, 0, 35)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = text
+    textLabel.Font = Enum.Font.Gotham
+    textLabel.TextSize = 12
+    textLabel.TextColor3 = Theme.SubText
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.TextWrapped = true
+    textLabel.Parent = notif
+
+    -- Animate in
+    tween(notif, {
+        Size = UDim2.new(0, 350, 0, 80),
+        Position = UDim2.new(1, -360, 1, -90)
+    }, 0.5, Enum.EasingStyle.Back)
+
+    -- Progress bar
+    local progress = Instance.new("Frame")
+    progress.Size = UDim2.new(1, 0, 0, 3)
+    progress.Position = UDim2.new(0, 0, 1, -3)
+    progress.BackgroundColor3 = type == "success" and Theme.Success or type == "error" and Theme.Danger or type == "warning" and Theme.Warning or Theme.Accent
+    progress.BorderSizePixel = 0
+    progress.Parent = notif
+
+    tween(progress, {Size = UDim2.new(0, 0, 0, 3)}, duration or 3, Enum.EasingStyle.Linear)
+
+    -- Animate out
+    task.wait(duration or 3)
+    tween(notif, {
+        Position = UDim2.new(1, 10, 1, -90)
+    }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+
+    task.wait(0.3)
+    notif:Destroy()
+end
+
+return LumaHub
