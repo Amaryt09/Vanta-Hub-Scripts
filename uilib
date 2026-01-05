@@ -1,6 +1,5 @@
--- Luma Hub UI Library
--- Inspired by Onion UI with smooth animations and mobile/PC compatibility
--- Created with love ❤️
+-- Luma Hub UI Library v2.0 - Sleek & Compact
+-- Ultra-smooth animations with dark modern design
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -11,82 +10,40 @@ local player = Players.LocalPlayer
 local LumaHub = {}
 LumaHub.__index = LumaHub
 
--- Theme Colors
+-- Sleek Dark Theme
 local Theme = {
-    Background = Color3.fromRGB(15, 15, 20),
-    Secondary = Color3.fromRGB(25, 25, 35),
-    Accent = Color3.fromRGB(138, 43, 226), -- Purple
-    AccentHover = Color3.fromRGB(158, 63, 246),
+    Background = Color3.fromRGB(10, 10, 15),
+    Secondary = Color3.fromRGB(18, 18, 25),
+    Tertiary = Color3.fromRGB(25, 25, 35),
+    Accent = Color3.fromRGB(147, 51, 234), -- Purple
+    AccentDark = Color3.fromRGB(120, 40, 200),
     Text = Color3.fromRGB(255, 255, 255),
-    SubText = Color3.fromRGB(180, 180, 190),
-    Border = Color3.fromRGB(60, 60, 80),
-    Success = Color3.fromRGB(46, 204, 113),
-    Danger = Color3.fromRGB(231, 76, 60),
-    Warning = Color3.fromRGB(241, 196, 15)
+    SubText = Color3.fromRGB(150, 150, 160),
+    Border = Color3.fromRGB(40, 40, 50),
+    Success = Color3.fromRGB(34, 197, 94),
+    Danger = Color3.fromRGB(239, 68, 68),
 }
 
--- Utility Functions
-local function tween(instance, properties, duration, style, direction)
-    style = style or Enum.EasingStyle.Quint
-    direction = direction or Enum.EasingDirection.Out
-    local tweenInfo = TweenInfo.new(duration, style, direction)
-    local tween = TweenService:Create(instance, tweenInfo, properties)
-    tween:Play()
-    return tween
+local function tween(obj, props, time, style, dir)
+    return TweenService:Create(obj, TweenInfo.new(time or 0.3, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
 end
 
-local function ripple(button, x, y)
-    local circle = Instance.new("ImageLabel")
-    circle.Image = "rbxassetid://266543268"
-    circle.ImageColor3 = Color3.fromRGB(255, 255, 255)
-    circle.ImageTransparency = 0.5
-    circle.BackgroundTransparency = 1
-    circle.ZIndex = 10
-    circle.Position = UDim2.new(0, x, 0, y)
-    circle.Size = UDim2.new(0, 0, 0, 0)
-    circle.Parent = button
-
-    tween(circle, {
-        Size = UDim2.new(0, 500, 0, 500),
-        Position = UDim2.new(0, x - 250, 0, y - 250),
-        ImageTransparency = 1
-    }, 0.6, Enum.EasingStyle.Exponential)
-
-    task.delay(0.6, function()
-        circle:Destroy()
-    end)
+local function corner(parent, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius or 8)
+    c.Parent = parent
+    return c
 end
 
-local function createCorner(parent, radius)
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius or 12)
-    corner.Parent = parent
-    return corner
+local function stroke(parent, color, thickness)
+    local s = Instance.new("UIStroke")
+    s.Color = color or Theme.Border
+    s.Thickness = thickness or 1
+    s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    s.Parent = parent
+    return s
 end
 
-local function createStroke(parent, color, thickness)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color or Theme.Border
-    stroke.Thickness = thickness or 1
-    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    stroke.Parent = parent
-    return stroke
-end
-
-local function createGlow(parent)
-    local glow = Instance.new("ImageLabel")
-    glow.Image = "rbxassetid://4996891970"
-    glow.ImageColor3 = Theme.Accent
-    glow.ImageTransparency = 0.7
-    glow.Size = UDim2.new(1, 40, 1, 40)
-    glow.Position = UDim2.new(0, -20, 0, -20)
-    glow.BackgroundTransparency = 1
-    glow.ZIndex = 0
-    glow.Parent = parent
-    return glow
-end
-
--- Main Library
 function LumaHub:New(title)
     local gui = Instance.new("ScreenGui")
     gui.Name = "LumaHub"
@@ -94,8 +51,8 @@ function LumaHub:New(title)
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.Parent = player:WaitForChild("PlayerGui")
 
+    -- Main Window (Smaller & Sleeker)
     local main = Instance.new("Frame")
-    main.Name = "Main"
     main.Size = UDim2.new(0, 0, 0, 0)
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -104,107 +61,134 @@ function LumaHub:New(title)
     main.ClipsDescendants = true
     main.Parent = gui
 
-    createCorner(main, 16)
-    createStroke(main, Theme.Border, 2)
-    createGlow(main)
+    corner(main, 12)
+    stroke(main, Theme.Border, 1)
 
-    -- Header
+    -- Subtle glow
+    local glow = Instance.new("ImageLabel")
+    glow.Image = "rbxassetid://4996891970"
+    glow.ImageColor3 = Theme.Accent
+    glow.ImageTransparency = 0.85
+    glow.Size = UDim2.new(1, 30, 1, 30)
+    glow.Position = UDim2.new(0, -15, 0, -15)
+    glow.BackgroundTransparency = 1
+    glow.ZIndex = 0
+    glow.Parent = main
+
+    -- Compact Header
     local header = Instance.new("Frame")
-    header.Name = "Header"
-    header.Size = UDim2.new(1, 0, 0, 60)
+    header.Size = UDim2.new(1, 0, 0, 45)
     header.BackgroundColor3 = Theme.Secondary
     header.BorderSizePixel = 0
     header.Parent = main
 
-    createCorner(header, 16)
-
-    local headerGradient = Instance.new("UIGradient")
-    headerGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Theme.Accent),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(75, 0, 130))
-    })
-    headerGradient.Rotation = 45
-    headerGradient.Parent = header
+    corner(header, 12)
 
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, -80, 1, 0)
-    titleLabel.Position = UDim2.new(0, 20, 0, 0)
+    titleLabel.Size = UDim2.new(1, -60, 1, 0)
+    titleLabel.Position = UDim2.new(0, 15, 0, 0)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title or "Luma Hub"
     titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextSize = 24
+    titleLabel.TextSize = 16
     titleLabel.TextColor3 = Theme.Text
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = header
 
+    -- Minimize Button
+    local minimizeBtn = Instance.new("TextButton")
+    minimizeBtn.Size = UDim2.new(0, 28, 0, 28)
+    minimizeBtn.Position = UDim2.new(1, -68, 0, 8.5)
+    minimizeBtn.BackgroundColor3 = Theme.Tertiary
+    minimizeBtn.Text = "—"
+    minimizeBtn.Font = Enum.Font.GothamBold
+    minimizeBtn.TextSize = 14
+    minimizeBtn.TextColor3 = Theme.Text
+    minimizeBtn.BorderSizePixel = 0
+    minimizeBtn.Parent = header
+
+    corner(minimizeBtn, 7)
+
+    local minimized = false
+    minimizeBtn.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        if minimized then
+            tween(main, {Size = UDim2.new(0, 480, 0, 45)}, 0.3)
+            minimizeBtn.Text = "□"
+        else
+            tween(main, {Size = UDim2.new(0, 480, 0, 380)}, 0.3)
+            minimizeBtn.Text = "—"
+        end
+    end)
+
+    minimizeBtn.MouseEnter:Connect(function()
+        tween(minimizeBtn, {BackgroundColor3 = Theme.Accent}, 0.2)
+    end)
+
+    minimizeBtn.MouseLeave:Connect(function()
+        tween(minimizeBtn, {BackgroundColor3 = Theme.Tertiary}, 0.2)
+    end)
+
     -- Close Button
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Name = "CloseButton"
-    closeBtn.Size = UDim2.new(0, 40, 0, 40)
-    closeBtn.Position = UDim2.new(1, -50, 0, 10)
+    closeBtn.Size = UDim2.new(0, 28, 0, 28)
+    closeBtn.Position = UDim2.new(1, -35, 0, 8.5)
     closeBtn.BackgroundColor3 = Theme.Danger
     closeBtn.Text = "✕"
     closeBtn.Font = Enum.Font.GothamBold
-    closeBtn.TextSize = 20
+    closeBtn.TextSize = 14
     closeBtn.TextColor3 = Theme.Text
     closeBtn.BorderSizePixel = 0
     closeBtn.Parent = header
 
-    createCorner(closeBtn, 10)
+    corner(closeBtn, 7)
 
     closeBtn.MouseButton1Click:Connect(function()
-        tween(main, {Size = UDim2.new(0, 0, 0, 0)}, 0.3)
-        task.wait(0.3)
+        tween(main, {Size = UDim2.new(0, 0, 0, 0)}, 0.2)
+        task.wait(0.2)
         gui:Destroy()
     end)
 
     closeBtn.MouseEnter:Connect(function()
-        tween(closeBtn, {BackgroundColor3 = Color3.fromRGB(255, 96, 80)}, 0.2)
-        tween(closeBtn, {Size = UDim2.new(0, 44, 0, 44)}, 0.2, Enum.EasingStyle.Back)
+        tween(closeBtn, {BackgroundColor3 = Color3.fromRGB(255, 80, 80)}, 0.2)
     end)
 
     closeBtn.MouseLeave:Connect(function()
         tween(closeBtn, {BackgroundColor3 = Theme.Danger}, 0.2)
-        tween(closeBtn, {Size = UDim2.new(0, 40, 0, 40)}, 0.2, Enum.EasingStyle.Back)
     end)
 
-    -- Tab Container
-    local tabContainer = Instance.new("Frame")
-    tabContainer.Name = "TabContainer"
-    tabContainer.Size = UDim2.new(0, 150, 1, -70)
-    tabContainer.Position = UDim2.new(0, 10, 0, 65)
-    tabContainer.BackgroundColor3 = Theme.Secondary
-    tabContainer.BorderSizePixel = 0
-    tabContainer.Parent = main
+    -- Compact Tab Bar
+    local tabBar = Instance.new("Frame")
+    tabBar.Size = UDim2.new(1, -16, 0, 35)
+    tabBar.Position = UDim2.new(0, 8, 0, 50)
+    tabBar.BackgroundColor3 = Theme.Secondary
+    tabBar.BorderSizePixel = 0
+    tabBar.Parent = main
 
-    createCorner(tabContainer, 12)
+    corner(tabBar, 8)
 
     local tabList = Instance.new("UIListLayout")
-    tabList.Padding = UDim.new(0, 8)
-    tabList.SortOrder = Enum.SortOrder.LayoutOrder
-    tabList.Parent = tabContainer
+    tabList.FillDirection = Enum.FillDirection.Horizontal
+    tabList.Padding = UDim.new(0, 4)
+    tabList.Parent = tabBar
 
     local tabPadding = Instance.new("UIPadding")
-    tabPadding.PaddingTop = UDim.new(0, 10)
-    tabPadding.PaddingBottom = UDim.new(0, 10)
-    tabPadding.PaddingLeft = UDim.new(0, 10)
-    tabPadding.PaddingRight = UDim.new(0, 10)
-    tabPadding.Parent = tabContainer
+    tabPadding.PaddingTop = UDim.new(0, 4)
+    tabPadding.PaddingBottom = UDim.new(0, 4)
+    tabPadding.PaddingLeft = UDim.new(0, 4)
+    tabPadding.PaddingRight = UDim.new(0, 4)
+    tabPadding.Parent = tabBar
 
-    -- Content Container
-    local contentContainer = Instance.new("Frame")
-    contentContainer.Name = "ContentContainer"
-    contentContainer.Size = UDim2.new(1, -180, 1, -70)
-    contentContainer.Position = UDim2.new(0, 170, 0, 65)
-    contentContainer.BackgroundTransparency = 1
-    contentContainer.BorderSizePixel = 0
-    contentContainer.Parent = main
+    -- Content Area
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, -16, 1, -100)
+    content.Position = UDim2.new(0, 8, 0, 92)
+    content.BackgroundTransparency = 1
+    content.Parent = main
 
-    -- Dragging functionality
-    local dragging = false
-    local dragStart, startPos
-
+    -- Dragging
+    local dragging, dragStart, startPos = false, nil, nil
+    
     header.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
@@ -222,279 +206,246 @@ function LumaHub:New(title)
     UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
-            tween(main, {
-                Position = UDim2.new(
-                    startPos.X.Scale,
-                    startPos.X.Offset + delta.X,
-                    startPos.Y.Scale,
-                    startPos.Y.Offset + delta.Y
-                )
-            }, 0.1, Enum.EasingStyle.Linear)
+            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 
-    -- Animate opening
-    tween(main, {Size = UDim2.new(0, 700, 0, 500)}, 0.5, Enum.EasingStyle.Back)
+    -- Open animation
+    tween(main, {Size = UDim2.new(0, 480, 0, 380)}, 0.4, Enum.EasingStyle.Back)
 
-    local library = setmetatable({
+    return setmetatable({
         GUI = gui,
         Main = main,
-        TabContainer = tabContainer,
-        ContentContainer = contentContainer,
+        TabBar = tabBar,
+        Content = content,
         Tabs = {},
         CurrentTab = nil
     }, LumaHub)
-
-    return library
 end
 
 function LumaHub:CreateTab(name, icon)
-    local tabButton = Instance.new("TextButton")
-    tabButton.Name = name
-    tabButton.Size = UDim2.new(1, 0, 0, 45)
-    tabButton.BackgroundColor3 = Theme.Background
-    tabButton.BorderSizePixel = 0
-    tabButton.Text = ""
-    tabButton.AutoButtonColor = false
-    tabButton.Parent = self.TabContainer
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Size = UDim2.new(0, 0, 1, -8)
+    tabBtn.BackgroundColor3 = Theme.Tertiary
+    tabBtn.Text = ""
+    tabBtn.AutoButtonColor = false
+    tabBtn.BorderSizePixel = 0
+    tabBtn.Parent = self.TabBar
 
-    createCorner(tabButton, 10)
+    corner(tabBtn, 6)
 
-    local tabIcon = Instance.new("TextLabel")
-    tabIcon.Size = UDim2.new(0, 30, 1, 0)
-    tabIcon.Position = UDim2.new(0, 10, 0, 0)
-    tabIcon.BackgroundTransparency = 1
-    tabIcon.Text = icon or "📦"
-    tabIcon.Font = Enum.Font.GothamBold
-    tabIcon.TextSize = 20
-    tabIcon.TextColor3 = Theme.SubText
-    tabIcon.Parent = tabButton
+    local iconLabel = Instance.new("TextLabel")
+    iconLabel.Size = UDim2.new(0, 20, 1, 0)
+    iconLabel.Position = UDim2.new(0, 8, 0, 0)
+    iconLabel.BackgroundTransparency = 1
+    iconLabel.Text = icon or "📦"
+    iconLabel.Font = Enum.Font.GothamBold
+    iconLabel.TextSize = 14
+    iconLabel.TextColor3 = Theme.SubText
+    iconLabel.Parent = tabBtn
 
-    local tabLabel = Instance.new("TextLabel")
-    tabLabel.Size = UDim2.new(1, -50, 1, 0)
-    tabLabel.Position = UDim2.new(0, 45, 0, 0)
-    tabLabel.BackgroundTransparency = 1
-    tabLabel.Text = name
-    tabLabel.Font = Enum.Font.GothamSemibold
-    tabLabel.TextSize = 14
-    tabLabel.TextColor3 = Theme.SubText
-    tabLabel.TextXAlignment = Enum.TextXAlignment.Left
-    tabLabel.Parent = tabButton
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, -36, 1, 0)
+    nameLabel.Position = UDim2.new(0, 32, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = name
+    nameLabel.Font = Enum.Font.GothamSemibold
+    nameLabel.TextSize = 12
+    nameLabel.TextColor3 = Theme.SubText
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.Parent = tabBtn
 
-    local tabContent = Instance.new("ScrollingFrame")
-    tabContent.Name = name .. "Content"
-    tabContent.Size = UDim2.new(1, 0, 1, 0)
-    tabContent.BackgroundTransparency = 1
-    tabContent.BorderSizePixel = 0
-    tabContent.ScrollBarThickness = 4
-    tabContent.ScrollBarImageColor3 = Theme.Accent
-    tabContent.Visible = false
-    tabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
-    tabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    tabContent.Parent = self.ContentContainer
+    -- Auto-size based on text
+    local textSize = game:GetService("TextService"):GetTextSize(name, 12, Enum.Font.GothamSemibold, Vector2.new(1000, 1000))
+    tabBtn.Size = UDim2.new(0, textSize.X + 44, 1, -8)
 
-    local contentList = Instance.new("UIListLayout")
-    contentList.Padding = UDim.new(0, 12)
-    contentList.SortOrder = Enum.SortOrder.LayoutOrder
-    contentList.Parent = tabContent
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, 0, 1, 0)
+    scroll.BackgroundTransparency = 1
+    scroll.BorderSizePixel = 0
+    scroll.ScrollBarThickness = 3
+    scroll.ScrollBarImageColor3 = Theme.Accent
+    scroll.Visible = false
+    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scroll.Parent = self.Content
 
-    local contentPadding = Instance.new("UIPadding")
-    contentPadding.PaddingTop = UDim.new(0, 10)
-    contentPadding.PaddingBottom = UDim.new(0, 10)
-    contentPadding.PaddingLeft = UDim.new(0, 10)
-    contentPadding.PaddingRight = UDim.new(0, 20)
-    contentPadding.Parent = tabContent
+    local list = Instance.new("UIListLayout")
+    list.Padding = UDim.new(0, 8)
+    list.SortOrder = Enum.SortOrder.LayoutOrder
+    list.Parent = scroll
 
-    local function selectTab()
+    local padding = Instance.new("UIPadding")
+    padding.PaddingTop = UDim.new(0, 8)
+    padding.PaddingBottom = UDim.new(0, 8)
+    padding.PaddingRight = UDim.new(0, 8)
+    padding.Parent = scroll
+
+    local function select()
         for _, tab in pairs(self.Tabs) do
-            tab.Button.BackgroundColor3 = Theme.Background
-            tab.Label.TextColor3 = Theme.SubText
-            tab.Icon.TextColor3 = Theme.SubText
+            tab.Button.BackgroundColor3 = Theme.Tertiary
+            tab.NameLabel.TextColor3 = Theme.SubText
+            tab.IconLabel.TextColor3 = Theme.SubText
             tab.Content.Visible = false
         end
-
-        tween(tabButton, {BackgroundColor3 = Theme.Accent}, 0.3)
-        tween(tabLabel, {TextColor3 = Theme.Text}, 0.3)
-        tween(tabIcon, {TextColor3 = Theme.Text}, 0.3)
-        tabContent.Visible = true
+        tween(tabBtn, {BackgroundColor3 = Theme.Accent}, 0.2)
+        tween(nameLabel, {TextColor3 = Theme.Text}, 0.2)
+        tween(iconLabel, {TextColor3 = Theme.Text}, 0.2)
+        scroll.Visible = true
         self.CurrentTab = name
     end
 
-    tabButton.MouseButton1Click:Connect(function()
-        selectTab()
-        ripple(tabButton, tabButton.AbsoluteSize.X / 2, tabButton.AbsoluteSize.Y / 2)
-    end)
+    tabBtn.MouseButton1Click:Connect(select)
 
-    tabButton.MouseEnter:Connect(function()
+    tabBtn.MouseEnter:Connect(function()
         if self.CurrentTab ~= name then
-            tween(tabButton, {BackgroundColor3 = Theme.Secondary}, 0.2)
+            tween(tabBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 45)}, 0.15)
         end
     end)
 
-    tabButton.MouseLeave:Connect(function()
+    tabBtn.MouseLeave:Connect(function()
         if self.CurrentTab ~= name then
-            tween(tabButton, {BackgroundColor3 = Theme.Background}, 0.2)
+            tween(tabBtn, {BackgroundColor3 = Theme.Tertiary}, 0.15)
         end
     end)
 
     local tab = {
-        Button = tabButton,
-        Label = tabLabel,
-        Icon = tabIcon,
-        Content = tabContent,
-        Elements = {}
+        Button = tabBtn,
+        NameLabel = nameLabel,
+        IconLabel = iconLabel,
+        Content = scroll
     }
 
     self.Tabs[name] = tab
 
-    if not self.CurrentTab then
-        selectTab()
-    end
+    if not self.CurrentTab then select() end
 
     return tab
 end
 
 function LumaHub:AddButton(tab, text, callback)
-    local button = Instance.new("TextButton")
-    button.Name = "Button"
-    button.Size = UDim2.new(1, 0, 0, 45)
-    button.BackgroundColor3 = Theme.Secondary
-    button.BorderSizePixel = 0
-    button.Text = text
-    button.Font = Enum.Font.GothamSemibold
-    button.TextSize = 14
-    button.TextColor3 = Theme.Text
-    button.AutoButtonColor = false
-    button.Parent = tab.Content
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 36)
+    btn.BackgroundColor3 = Theme.Secondary
+    btn.Text = text
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 13
+    btn.TextColor3 = Theme.Text
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Parent = tab.Content
 
-    createCorner(button, 10)
+    corner(btn, 8)
 
-    button.MouseButton1Click:Connect(function()
-        ripple(button, button.AbsoluteSize.X / 2, button.AbsoluteSize.Y / 2)
+    btn.MouseButton1Click:Connect(function()
+        tween(btn, {BackgroundColor3 = Theme.Accent}, 0.1)
+        task.wait(0.1)
+        tween(btn, {BackgroundColor3 = Theme.Secondary}, 0.1)
         pcall(callback)
     end)
 
-    button.MouseEnter:Connect(function()
-        tween(button, {BackgroundColor3 = Theme.Accent}, 0.2)
+    btn.MouseEnter:Connect(function()
+        tween(btn, {BackgroundColor3 = Theme.Tertiary}, 0.15)
     end)
 
-    button.MouseLeave:Connect(function()
-        tween(button, {BackgroundColor3 = Theme.Secondary}, 0.2)
+    btn.MouseLeave:Connect(function()
+        tween(btn, {BackgroundColor3 = Theme.Secondary}, 0.15)
     end)
 
-    table.insert(tab.Elements, button)
-    return button
+    return btn
 end
 
 function LumaHub:AddToggle(tab, text, default, callback)
     local frame = Instance.new("Frame")
-    frame.Name = "Toggle"
-    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.Size = UDim2.new(1, 0, 0, 36)
     frame.BackgroundColor3 = Theme.Secondary
     frame.BorderSizePixel = 0
     frame.Parent = tab.Content
 
-    createCorner(frame, 10)
+    corner(frame, 8)
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -70, 1, 0)
-    label.Position = UDim2.new(0, 15, 0, 0)
+    label.Size = UDim2.new(1, -55, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = text
     label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 14
+    label.TextSize = 13
     label.TextColor3 = Theme.Text
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
 
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Size = UDim2.new(0, 50, 0, 26)
-    toggleButton.Position = UDim2.new(1, -60, 0.5, -13)
-    toggleButton.BackgroundColor3 = default and Theme.Success or Theme.Border
-    toggleButton.BorderSizePixel = 0
-    toggleButton.Text = ""
-    toggleButton.AutoButtonColor = false
-    toggleButton.Parent = frame
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 42, 0, 22)
+    toggle.Position = UDim2.new(1, -50, 0.5, -11)
+    toggle.BackgroundColor3 = default and Theme.Success or Theme.Border
+    toggle.Text = ""
+    toggle.AutoButtonColor = false
+    toggle.BorderSizePixel = 0
+    toggle.Parent = frame
 
-    createCorner(toggleButton, 13)
+    corner(toggle, 11)
 
-    local toggleCircle = Instance.new("Frame")
-    toggleCircle.Size = UDim2.new(0, 20, 0, 20)
-    toggleCircle.Position = default and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
-    toggleCircle.BackgroundColor3 = Theme.Text
-    toggleCircle.BorderSizePixel = 0
-    toggleCircle.Parent = toggleButton
+    local circle = Instance.new("Frame")
+    circle.Size = UDim2.new(0, 16, 0, 16)
+    circle.Position = default and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)
+    circle.BackgroundColor3 = Theme.Text
+    circle.BorderSizePixel = 0
+    circle.Parent = toggle
 
-    createCorner(toggleCircle, 10)
+    corner(circle, 8)
 
-    local toggled = default or false
+    local state = default or false
 
-    toggleButton.MouseButton1Click:Connect(function()
-        toggled = not toggled
-
-        tween(toggleButton, {
-            BackgroundColor3 = toggled and Theme.Success or Theme.Border
-        }, 0.3)
-
-        tween(toggleCircle, {
-            Position = toggled and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
-        }, 0.3, Enum.EasingStyle.Back)
-
-        pcall(callback, toggled)
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        tween(toggle, {BackgroundColor3 = state and Theme.Success or Theme.Border}, 0.2)
+        tween(circle, {Position = state and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8)}, 0.2, Enum.EasingStyle.Back)
+        pcall(callback, state)
     end)
 
-    toggleButton.MouseEnter:Connect(function()
-        tween(toggleCircle, {Size = UDim2.new(0, 22, 0, 22)}, 0.2)
-    end)
-
-    toggleButton.MouseLeave:Connect(function()
-        tween(toggleCircle, {Size = UDim2.new(0, 20, 0, 20)}, 0.2)
-    end)
-
-    table.insert(tab.Elements, frame)
     return frame
 end
 
 function LumaHub:AddSlider(tab, text, min, max, default, callback)
     local frame = Instance.new("Frame")
-    frame.Name = "Slider"
-    frame.Size = UDim2.new(1, 0, 0, 60)
+    frame.Size = UDim2.new(1, 0, 0, 50)
     frame.BackgroundColor3 = Theme.Secondary
     frame.BorderSizePixel = 0
     frame.Parent = tab.Content
 
-    createCorner(frame, 10)
+    corner(frame, 8)
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -70, 0, 20)
-    label.Position = UDim2.new(0, 15, 0, 8)
+    label.Size = UDim2.new(1, -50, 0, 18)
+    label.Position = UDim2.new(0, 12, 0, 6)
     label.BackgroundTransparency = 1
     label.Text = text
     label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 14
+    label.TextSize = 13
     label.TextColor3 = Theme.Text
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
 
-    local valueLabel = Instance.new("TextLabel")
-    valueLabel.Size = UDim2.new(0, 60, 0, 20)
-    valueLabel.Position = UDim2.new(1, -70, 0, 8)
-    valueLabel.BackgroundTransparency = 1
-    valueLabel.Text = tostring(default)
-    valueLabel.Font = Enum.Font.GothamBold
-    valueLabel.TextSize = 14
-    valueLabel.TextColor3 = Theme.Accent
-    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
-    valueLabel.Parent = frame
+    local value = Instance.new("TextLabel")
+    value.Size = UDim2.new(0, 50, 0, 18)
+    value.Position = UDim2.new(1, -55, 0, 6)
+    value.BackgroundTransparency = 1
+    value.Text = tostring(default)
+    value.Font = Enum.Font.GothamBold
+    value.TextSize = 12
+    value.TextColor3 = Theme.Accent
+    value.TextXAlignment = Enum.TextXAlignment.Right
+    value.Parent = frame
 
     local sliderBack = Instance.new("Frame")
-    sliderBack.Size = UDim2.new(1, -30, 0, 6)
-    sliderBack.Position = UDim2.new(0, 15, 1, -20)
-    sliderBack.BackgroundColor3 = Theme.Background
+    sliderBack.Size = UDim2.new(1, -24, 0, 4)
+    sliderBack.Position = UDim2.new(0, 12, 1, -14)
+    sliderBack.BackgroundColor3 = Theme.Tertiary
     sliderBack.BorderSizePixel = 0
     sliderBack.Parent = frame
 
-    createCorner(sliderBack, 3)
+    corner(sliderBack, 2)
 
     local sliderFill = Instance.new("Frame")
     sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
@@ -502,43 +453,43 @@ function LumaHub:AddSlider(tab, text, min, max, default, callback)
     sliderFill.BorderSizePixel = 0
     sliderFill.Parent = sliderBack
 
-    createCorner(sliderFill, 3)
+    corner(sliderFill, 2)
 
-    local sliderButton = Instance.new("TextButton")
-    sliderButton.Size = UDim2.new(0, 18, 0, 18)
-    sliderButton.Position = UDim2.new((default - min) / (max - min), -9, 0.5, -9)
-    sliderButton.BackgroundColor3 = Theme.Text
-    sliderButton.BorderSizePixel = 0
-    sliderButton.Text = ""
-    sliderButton.AutoButtonColor = false
-    sliderButton.Parent = sliderBack
+    local sliderBtn = Instance.new("TextButton")
+    sliderBtn.Size = UDim2.new(0, 14, 0, 14)
+    sliderBtn.Position = UDim2.new((default - min) / (max - min), -7, 0.5, -7)
+    sliderBtn.BackgroundColor3 = Theme.Text
+    sliderBtn.Text = ""
+    sliderBtn.AutoButtonColor = false
+    sliderBtn.BorderSizePixel = 0
+    sliderBtn.Parent = sliderBack
 
-    createCorner(sliderButton, 9)
+    corner(sliderBtn, 7)
 
     local dragging = false
 
     local function update(input)
         local pos = math.clamp((input.Position.X - sliderBack.AbsolutePosition.X) / sliderBack.AbsoluteSize.X, 0, 1)
-        local value = math.floor(min + (max - min) * pos)
+        local val = math.floor(min + (max - min) * pos)
 
-        tween(sliderFill, {Size = UDim2.new(pos, 0, 1, 0)}, 0.1, Enum.EasingStyle.Linear)
-        tween(sliderButton, {Position = UDim2.new(pos, -9, 0.5, -9)}, 0.1, Enum.EasingStyle.Linear)
-        valueLabel.Text = tostring(value)
+        sliderFill.Size = UDim2.new(pos, 0, 1, 0)
+        sliderBtn.Position = UDim2.new(pos, -7, 0.5, -7)
+        value.Text = tostring(val)
 
-        pcall(callback, value)
+        pcall(callback, val)
     end
 
-    sliderButton.InputBegan:Connect(function(input)
+    sliderBtn.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
-            tween(sliderButton, {Size = UDim2.new(0, 22, 0, 22)}, 0.2)
+            tween(sliderBtn, {Size = UDim2.new(0, 18, 0, 18)}, 0.15)
         end
     end)
 
-    sliderButton.InputEnded:Connect(function(input)
+    sliderBtn.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
-            tween(sliderButton, {Size = UDim2.new(0, 18, 0, 18)}, 0.2)
+            tween(sliderBtn, {Size = UDim2.new(0, 14, 0, 14)}, 0.15)
         end
     end)
 
@@ -554,106 +505,97 @@ function LumaHub:AddSlider(tab, text, min, max, default, callback)
         end
     end)
 
-    table.insert(tab.Elements, frame)
     return frame
 end
 
 function LumaHub:AddTextbox(tab, text, placeholder, callback)
     local frame = Instance.new("Frame")
-    frame.Name = "Textbox"
-    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.Size = UDim2.new(1, 0, 0, 36)
     frame.BackgroundColor3 = Theme.Secondary
     frame.BorderSizePixel = 0
     frame.Parent = tab.Content
 
-    createCorner(frame, 10)
+    corner(frame, 8)
 
-    local textbox = Instance.new("TextBox")
-    textbox.Size = UDim2.new(1, -30, 1, -10)
-    textbox.Position = UDim2.new(0, 15, 0, 5)
-    textbox.BackgroundTransparency = 1
-    textbox.PlaceholderText = placeholder or text
-    textbox.Text = ""
-    textbox.Font = Enum.Font.GothamSemibold
-    textbox.TextSize = 14
-    textbox.TextColor3 = Theme.Text
-    textbox.PlaceholderColor3 = Theme.SubText
-    textbox.TextXAlignment = Enum.TextXAlignment.Left
-    textbox.ClearTextOnFocus = false
-    textbox.Parent = frame
+    local box = Instance.new("TextBox")
+    box.Size = UDim2.new(1, -24, 1, -8)
+    box.Position = UDim2.new(0, 12, 0, 4)
+    box.BackgroundTransparency = 1
+    box.PlaceholderText = placeholder or text
+    box.Text = ""
+    box.Font = Enum.Font.GothamSemibold
+    box.TextSize = 13
+    box.TextColor3 = Theme.Text
+    box.PlaceholderColor3 = Theme.SubText
+    box.TextXAlignment = Enum.TextXAlignment.Left
+    box.ClearTextOnFocus = false
+    box.Parent = frame
 
-    textbox.Focused:Connect(function()
-        tween(frame, {BackgroundColor3 = Theme.Accent}, 0.2)
+    box.Focused:Connect(function()
+        tween(frame, {BackgroundColor3 = Theme.Tertiary}, 0.15)
     end)
 
-    textbox.FocusLost:Connect(function(enter)
-        tween(frame, {BackgroundColor3 = Theme.Secondary}, 0.2)
-        if enter then
-            pcall(callback, textbox.Text)
-        end
+    box.FocusLost:Connect(function(enter)
+        tween(frame, {BackgroundColor3 = Theme.Secondary}, 0.15)
+        if enter then pcall(callback, box.Text) end
     end)
 
-    table.insert(tab.Elements, frame)
-    return textbox
+    return box
 end
 
 function LumaHub:AddLabel(tab, text)
     local label = Instance.new("TextLabel")
-    label.Name = "Label"
-    label.Size = UDim2.new(1, 0, 0, 30)
+    label.Size = UDim2.new(1, 0, 0, 24)
     label.BackgroundTransparency = 1
     label.Text = text
     label.Font = Enum.Font.Gotham
-    label.TextSize = 13
+    label.TextSize = 12
     label.TextColor3 = Theme.SubText
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = tab.Content
 
-    table.insert(tab.Elements, label)
     return label
 end
 
 function LumaHub:AddDropdown(tab, text, options, callback)
     local frame = Instance.new("Frame")
-    frame.Name = "Dropdown"
-    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.Size = UDim2.new(1, 0, 0, 36)
     frame.BackgroundColor3 = Theme.Secondary
     frame.BorderSizePixel = 0
     frame.Parent = tab.Content
 
-    createCorner(frame, 10)
+    corner(frame, 8)
 
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 1, 0)
-    button.BackgroundTransparency = 1
-    button.Text = ""
-    button.Parent = frame
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 1, 0)
+    btn.BackgroundTransparency = 1
+    btn.Text = ""
+    btn.Parent = frame
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -40, 1, 0)
-    label.Position = UDim2.new(0, 15, 0, 0)
+    label.Size = UDim2.new(1, -35, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = text
     label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 14
+    label.TextSize = 13
     label.TextColor3 = Theme.Text
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
 
     local arrow = Instance.new("TextLabel")
     arrow.Size = UDim2.new(0, 20, 1, 0)
-    arrow.Position = UDim2.new(1, -30, 0, 0)
+    arrow.Position = UDim2.new(1, -25, 0, 0)
     arrow.BackgroundTransparency = 1
     arrow.Text = "▼"
     arrow.Font = Enum.Font.GothamBold
-    arrow.TextSize = 12
+    arrow.TextSize = 10
     arrow.TextColor3 = Theme.SubText
     arrow.Parent = frame
 
     local dropdown = Instance.new("Frame")
-    dropdown.Name = "DropdownList"
     dropdown.Size = UDim2.new(1, 0, 0, 0)
-    dropdown.Position = UDim2.new(0, 0, 1, 5)
+    dropdown.Position = UDim2.new(0, 0, 1, 4)
     dropdown.BackgroundColor3 = Theme.Secondary
     dropdown.BorderSizePixel = 0
     dropdown.ClipsDescendants = true
@@ -661,185 +603,185 @@ function LumaHub:AddDropdown(tab, text, options, callback)
     dropdown.ZIndex = 5
     dropdown.Parent = frame
 
-    createCorner(dropdown, 10)
-    createStroke(dropdown, Theme.Border, 1)
+    corner(dropdown, 8)
+    stroke(dropdown, Theme.Border, 1)
 
-    local dropdownList = Instance.new("UIListLayout")
-    dropdownList.Padding = UDim.new(0, 2)
-    dropdownList.SortOrder = Enum.SortOrder.LayoutOrder
-    dropdownList.Parent = dropdown
+    local dropList = Instance.new("UIListLayout")
+    dropList.Padding = UDim.new(0, 2)
+    dropList.Parent = dropdown
 
-    local dropdownPadding = Instance.new("UIPadding")
-    dropdownPadding.PaddingTop = UDim.new(0, 5)
-    dropdownPadding.PaddingBottom = UDim.new(0, 5)
-    dropdownPadding.PaddingLeft = UDim.new(0, 5)
-    dropdownPadding.PaddingRight = UDim.new(0, 5)
-    dropdownPadding.Parent = dropdown
+    local dropPad = Instance.new("UIPadding")
+    dropPad.PaddingAll = UDim.new(0, 4)
+    dropPad.Parent = dropdown
 
-    local isOpen = false
+    local open = false
 
     for _, option in ipairs(options) do
-        local optionButton = Instance.new("TextButton")
-        optionButton.Size = UDim2.new(1, 0, 0, 35)
-        optionButton.BackgroundColor3 = Theme.Background
-        optionButton.Text = option
-        optionButton.Font = Enum.Font.Gotham
-        optionButton.TextSize = 13
-        optionButton.TextColor3 = Theme.Text
-        optionButton.AutoButtonColor = false
-        optionButton.Parent = dropdown
+        local optBtn = Instance.new("TextButton")
+        optBtn.Size = UDim2.new(1, 0, 0, 28)
+        optBtn.BackgroundColor3 = Theme.Tertiary
+        optBtn.Text = option
+        optBtn.Font = Enum.Font.Gotham
+        optBtn.TextSize = 12
+        optBtn.TextColor3 = Theme.Text
+        optBtn.AutoButtonColor = false
+        optBtn.BorderSizePixel = 0
+        optBtn.Parent = dropdown
 
-        createCorner(optionButton, 8)
+        corner(optBtn, 6)
 
-        optionButton.MouseButton1Click:Connect(function()
+        optBtn.MouseButton1Click:Connect(function()
             label.Text = text .. ": " .. option
-            isOpen = false
-            tween(dropdown, {Size = UDim2.new(1, 0, 0, 0)}, 0.3, Enum.EasingStyle.Back)
-            tween(arrow, {Rotation = 0}, 0.3)
-            task.wait(0.3)
+            open = false
+            tween(dropdown, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+            tween(arrow, {Rotation = 0}, 0.2)
+            task.wait(0.2)
             dropdown.Visible = false
             pcall(callback, option)
         end)
 
-        optionButton.MouseEnter:Connect(function()
-            tween(optionButton, {BackgroundColor3 = Theme.Accent}, 0.2)
+        optBtn.MouseEnter:Connect(function()
+            tween(optBtn, {BackgroundColor3 = Theme.Accent}, 0.15)
         end)
 
-        optionButton.MouseLeave:Connect(function()
-            tween(optionButton, {BackgroundColor3 = Theme.Background}, 0.2)
+        optBtn.MouseLeave:Connect(function()
+            tween(optBtn, {BackgroundColor3 = Theme.Tertiary}, 0.15)
         end)
     end
 
-    button.MouseButton1Click:Connect(function()
-        isOpen = not isOpen
+    btn.MouseButton1Click:Connect(function()
+        open = not open
         dropdown.Visible = true
 
-        if isOpen then
-            local height = math.min(#options * 37 + 10, 200)
-            tween(dropdown, {Size = UDim2.new(1, 0, 0, height)}, 0.3, Enum.EasingStyle.Back)
-            tween(arrow, {Rotation = 180}, 0.3)
+        if open then
+            local h = math.min(#options * 30 + 8, 150)
+            tween(dropdown, {Size = UDim2.new(1, 0, 0, h)}, 0.2)
+            tween(arrow, {Rotation = 180}, 0.2)
         else
-            tween(dropdown, {Size = UDim2.new(1, 0, 0, 0)}, 0.3, Enum.EasingStyle.Back)
-            tween(arrow, {Rotation = 0}, 0.3)
-            task.wait(0.3)
+            tween(dropdown, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+            tween(arrow, {Rotation = 0}, 0.2)
+            task.wait(0.2)
             dropdown.Visible = false
         end
     end)
 
-    table.insert(tab.Elements, frame)
     return frame
 end
 
-function LumaHub:AddColorPicker(tab, text, default, callback)
-    local frame = Instance.new("Frame")
-    frame.Name = "ColorPicker"
-    frame.Size = UDim2.new(1, 0, 0, 45)
-    frame.BackgroundColor3 = Theme.Secondary
-    frame.BorderSizePixel = 0
-    frame.Parent = tab.Content
+function LumaHub:Notify(title, text, duration, type)
+    local notif = Instance.new("Frame")
+    notif.Size = UDim2.new(0, 0, 0, 65)
+    notif.Position = UDim2.new(1, 10, 1, -75)
+    notif.BackgroundColor3 = Theme.Secondary
+    notif.BorderSizePixel = 0
+    notif.ZIndex = 10
+    notif.Parent = self.GUI
 
-    createCorner(frame, 10)
+    corner(notif, 10)
+    stroke(notif, Theme.Border, 1)
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -60, 1, 0)
-    label.Position = UDim2.new(0, 15, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 14
-    label.TextColor3 = Theme.Text
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = frame
+    local icon = Instance.new("TextLabel")
+    icon.Size = UDim2.new(0, 40, 1, 0)
+    icon.BackgroundTransparency = 1
+    icon.Font = Enum.Font.GothamBold
+    icon.TextSize = 22
+    icon.TextColor3 = type == "success" and Theme.Success or type == "error" and Theme.Danger or Theme.Accent
+    icon.Text = type == "success" and "✓" or type == "error" and "✕" or type == "warning" and "⚠" or "ℹ"
+    icon.Parent = notif
 
-    local colorButton = Instance.new("TextButton")
-    colorButton.Size = UDim2.new(0, 35, 0, 35)
-    colorButton.Position = UDim2.new(1, -45, 0.5, -17.5)
-    colorButton.BackgroundColor3 = default or Color3.fromRGB(255, 255, 255)
-    colorButton.Text = ""
-    colorButton.AutoButtonColor = false
-    colorButton.Parent = frame
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -50, 0, 20)
+    titleLabel.Position = UDim2.new(0, 45, 0, 8)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 13
+    titleLabel.TextColor3 = Theme.Text
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = notif
 
-    createCorner(colorButton, 8)
-    createStroke(colorButton, Theme.Border, 2)
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, -50, 0, 28)
+    textLabel.Position = UDim2.new(0, 45, 0, 28)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = text
+    textLabel.Font = Enum.Font.Gotham
+    textLabel.TextSize = 11
+    textLabel.TextColor3 = Theme.SubText
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.TextWrapped = true
+    textLabel.Parent = notif
 
-    local currentColor = default or Color3.fromRGB(255, 255, 255)
+    tween(notif, {
+        Size = UDim2.new(0, 280, 0, 65),
+        Position = UDim2.new(1, -290, 1, -75)
+    }, 0.3, Enum.EasingStyle.Back)
 
-    colorButton.MouseButton1Click:Connect(function()
-        -- Simple color picker (cycles through rainbow)
-        local hue = tick() % 5 / 5
-        currentColor = Color3.fromHSV(hue, 1, 1)
-        tween(colorButton, {BackgroundColor3 = currentColor}, 0.3)
-        pcall(callback, currentColor)
-    end)
+    local progress = Instance.new("Frame")
+    progress.Size = UDim2.new(1, 0, 0, 2)
+    progress.Position = UDim2.new(0, 0, 1, -2)
+    progress.BackgroundColor3 = type == "success" and Theme.Success or type == "error" and Theme.Danger or type == "warning" and Theme.Warning or Theme.Accent
+    progress.BorderSizePixel = 0
+    progress.Parent = notif
 
-    colorButton.MouseEnter:Connect(function()
-        tween(colorButton, {Size = UDim2.new(0, 38, 0, 38)}, 0.2, Enum.EasingStyle.Back)
-    end)
+    tween(progress, {Size = UDim2.new(0, 0, 0, 2)}, duration or 3, Enum.EasingStyle.Linear)
 
-    colorButton.MouseLeave:Connect(function()
-        tween(colorButton, {Size = UDim2.new(0, 35, 0, 35)}, 0.2, Enum.EasingStyle.Back)
-    end)
-
-    -- Rainbow animation
-    RunService.RenderStepped:Connect(function()
-        local hue = (tick() % 10) / 10
-        colorButton.BackgroundColor3 = Color3.fromHSV(hue, 0.5, 1)
-    end)
-
-    table.insert(tab.Elements, frame)
-    return frame
+    task.wait(duration or 3)
+    tween(notif, {Position = UDim2.new(1, 10, 1, -75)}, 0.2)
+    task.wait(0.2)
+    notif:Destroy()
 end
 
 function LumaHub:AddKeybind(tab, text, default, callback)
     local frame = Instance.new("Frame")
-    frame.Name = "Keybind"
-    frame.Size = UDim2.new(1, 0, 0, 45)
+    frame.Size = UDim2.new(1, 0, 0, 36)
     frame.BackgroundColor3 = Theme.Secondary
     frame.BorderSizePixel = 0
     frame.Parent = tab.Content
 
-    createCorner(frame, 10)
+    corner(frame, 8)
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -100, 1, 0)
-    label.Position = UDim2.new(0, 15, 0, 0)
+    label.Size = UDim2.new(1, -80, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = text
     label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 14
+    label.TextSize = 13
     label.TextColor3 = Theme.Text
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
 
-    local keybindButton = Instance.new("TextButton")
-    keybindButton.Size = UDim2.new(0, 80, 0, 30)
-    keybindButton.Position = UDim2.new(1, -90, 0.5, -15)
-    keybindButton.BackgroundColor3 = Theme.Background
-    keybindButton.Text = default or "None"
-    keybindButton.Font = Enum.Font.GothamBold
-    keybindButton.TextSize = 12
-    keybindButton.TextColor3 = Theme.Accent
-    keybindButton.AutoButtonColor = false
-    keybindButton.Parent = frame
+    local keyBtn = Instance.new("TextButton")
+    keyBtn.Size = UDim2.new(0, 65, 0, 24)
+    keyBtn.Position = UDim2.new(1, -72, 0.5, -12)
+    keyBtn.BackgroundColor3 = Theme.Tertiary
+    keyBtn.Text = default or "None"
+    keyBtn.Font = Enum.Font.GothamBold
+    keyBtn.TextSize = 11
+    keyBtn.TextColor3 = Theme.Accent
+    keyBtn.AutoButtonColor = false
+    keyBtn.BorderSizePixel = 0
+    keyBtn.Parent = frame
 
-    createCorner(keybindButton, 8)
+    corner(keyBtn, 6)
 
     local binding = false
     local currentKey = default
 
-    keybindButton.MouseButton1Click:Connect(function()
+    keyBtn.MouseButton1Click:Connect(function()
         binding = true
-        keybindButton.Text = "..."
-        tween(keybindButton, {BackgroundColor3 = Theme.Accent}, 0.2)
+        keyBtn.Text = "..."
+        tween(keyBtn, {BackgroundColor3 = Theme.Accent}, 0.15)
     end)
 
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if binding and not gameProcessed then
             if input.KeyCode ~= Enum.KeyCode.Unknown then
                 currentKey = input.KeyCode.Name
-                keybindButton.Text = currentKey
+                keyBtn.Text = currentKey
                 binding = false
-                tween(keybindButton, {BackgroundColor3 = Theme.Background}, 0.2)
+                tween(keyBtn, {BackgroundColor3 = Theme.Tertiary}, 0.15)
                 pcall(callback, input.KeyCode)
             end
         elseif not binding and currentKey and input.KeyCode.Name == currentKey then
@@ -847,78 +789,99 @@ function LumaHub:AddKeybind(tab, text, default, callback)
         end
     end)
 
-    table.insert(tab.Elements, frame)
     return frame
 end
 
-function LumaHub:Notify(title, text, duration, type)
-    local notif = Instance.new("Frame")
-    notif.Size = UDim2.new(0, 0, 0, 80)
-    notif.Position = UDim2.new(1, 10, 1, -90)
-    notif.BackgroundColor3 = Theme.Secondary
-    notif.BorderSizePixel = 0
-    notif.ZIndex = 10
-    notif.Parent = self.GUI
+function LumaHub:AddColorPicker(tab, text, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 36)
+    frame.BackgroundColor3 = Theme.Secondary
+    frame.BorderSizePixel = 0
+    frame.Parent = tab.Content
 
-    createCorner(notif, 12)
-    createStroke(notif, Theme.Border, 2)
+    corner(frame, 8)
 
-    local icon = Instance.new("TextLabel")
-    icon.Size = UDim2.new(0, 50, 1, 0)
-    icon.BackgroundTransparency = 1
-    icon.Font = Enum.Font.GothamBold
-    icon.TextSize = 28
-    icon.TextColor3 = type == "success" and Theme.Success or type == "error" and Theme.Danger or type == "warning" and Theme.Warning or Theme.Accent
-    icon.Text = type == "success" and "✓" or type == "error" and "✕" or type == "warning" and "⚠" or "ℹ"
-    icon.Parent = notif
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -50, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 13
+    label.TextColor3 = Theme.Text
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
 
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, -60, 0, 25)
-    titleLabel.Position = UDim2.new(0, 55, 0, 10)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = title
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextSize = 15
-    titleLabel.TextColor3 = Theme.Text
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    titleLabel.Parent = notif
+    local colorBtn = Instance.new("TextButton")
+    colorBtn.Size = UDim2.new(0, 28, 0, 28)
+    colorBtn.Position = UDim2.new(1, -36, 0.5, -14)
+    colorBtn.BackgroundColor3 = default or Color3.fromRGB(255, 255, 255)
+    colorBtn.Text = ""
+    colorBtn.AutoButtonColor = false
+    colorBtn.BorderSizePixel = 0
+    colorBtn.Parent = frame
 
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -60, 0, 35)
-    textLabel.Position = UDim2.new(0, 55, 0, 35)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = text
-    textLabel.Font = Enum.Font.Gotham
-    textLabel.TextSize = 12
-    textLabel.TextColor3 = Theme.SubText
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.TextWrapped = true
-    textLabel.Parent = notif
+    corner(colorBtn, 7)
+    stroke(colorBtn, Theme.Border, 1)
 
-    -- Animate in
-    tween(notif, {
-        Size = UDim2.new(0, 350, 0, 80),
-        Position = UDim2.new(1, -360, 1, -90)
-    }, 0.5, Enum.EasingStyle.Back)
+    local currentColor = default or Color3.fromRGB(255, 255, 255)
 
-    -- Progress bar
-    local progress = Instance.new("Frame")
-    progress.Size = UDim2.new(1, 0, 0, 3)
-    progress.Position = UDim2.new(0, 0, 1, -3)
-    progress.BackgroundColor3 = type == "success" and Theme.Success or type == "error" and Theme.Danger or type == "warning" and Theme.Warning or Theme.Accent
-    progress.BorderSizePixel = 0
-    progress.Parent = notif
+    colorBtn.MouseButton1Click:Connect(function()
+        local hue = tick() % 5 / 5
+        currentColor = Color3.fromHSV(hue, 1, 1)
+        tween(colorBtn, {BackgroundColor3 = currentColor}, 0.2)
+        pcall(callback, currentColor)
+    end)
 
-    tween(progress, {Size = UDim2.new(0, 0, 0, 3)}, duration or 3, Enum.EasingStyle.Linear)
+    colorBtn.MouseEnter:Connect(function()
+        tween(colorBtn, {Size = UDim2.new(0, 32, 0, 32)}, 0.15, Enum.EasingStyle.Back)
+    end)
 
-    -- Animate out
-    task.wait(duration or 3)
-    tween(notif, {
-        Position = UDim2.new(1, 10, 1, -90)
-    }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    colorBtn.MouseLeave:Connect(function()
+        tween(colorBtn, {Size = UDim2.new(0, 28, 0, 28)}, 0.15, Enum.EasingStyle.Back)
+    end)
 
-    task.wait(0.3)
-    notif:Destroy()
+    RunService.RenderStepped:Connect(function()
+        local hue = (tick() % 10) / 10
+        colorBtn.BackgroundColor3 = Color3.fromHSV(hue, 0.6, 1)
+    end)
+
+    return frame
+end
+
+function LumaHub:AddDivider(tab, text)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 20)
+    frame.BackgroundTransparency = 1
+    frame.Parent = tab.Content
+
+    if text then
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(0, 100, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 11
+        label.TextColor3 = Theme.SubText
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = frame
+
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(1, -110, 0, 1)
+        line.Position = UDim2.new(0, 105, 0.5, 0)
+        line.BackgroundColor3 = Theme.Border
+        line.BorderSizePixel = 0
+        line.Parent = frame
+    else
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(1, 0, 0, 1)
+        line.Position = UDim2.new(0, 0, 0.5, 0)
+        line.BackgroundColor3 = Theme.Border
+        line.BorderSizePixel = 0
+        line.Parent = frame
+    end
+
+    return frame
 end
 
 return LumaHub
