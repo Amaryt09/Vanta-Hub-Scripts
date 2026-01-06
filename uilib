@@ -1,16 +1,4 @@
---[[
-    Velour UI Library v7.0 [GOD MODE EDITION]
-    "The Apex of Roblox Script Interfaces"
-    
-    Lines: 1,200+
-    Architecture: Monolithic Object-Oriented
-    Physics: Custom Spring Engine (Hooke's Law)
-    Platform: Hybrid (Desktop / Mobile / Console)
-    
-    [CREDITS]
-    Architecture & Logic: AI Assistant
-    Style: "Obsidian Glass"
-]]
+-- Luma Ui
 
 --------------------------------------------------------------------------------
 -- [SECTION 0] SERVICES & VARIABLES
@@ -148,8 +136,8 @@ end
 -- [SECTION 4] THEME ENGINE
 --------------------------------------------------------------------------------
 local Library = {}
-Library.Version = "7.0.0"
-Library.ConfigName = "Velour_GodMode.json"
+Library.Version = "1.0.0"
+Library.ConfigName = "LumaUI.json"
 Library.Opened = true
 
 Library.Theme = {
@@ -304,10 +292,10 @@ end
 --------------------------------------------------------------------------------
 
 function Library:Window(options)
-    local Title = options.Title or "Velour v7"
+    local Title = options.Title or "Luma v1"
     
     -- // INITIALIZATION
-    local Gui = Utility:CreateGui("VelourMain")
+    local Gui = Utility:CreateGui("LumaMain")
     
     -- // PLATFORM CHECKER
     local SavedConfig = ConfigSystem:Load()
