@@ -1,0 +1,1679 @@
+--[[
+    Luma Hub - Modern UI Library
+    Enhanced version with improved features and organization
+]]
+
+local LumaHub = {}
+LumaHub.__index = LumaHub
+
+-- Services
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- ==================== THEME SYSTEM ====================
+local THEMES = {
+    Dark = {
+        Main = Color3.fromRGB(15, 15, 18),
+        Background = Color3.fromRGB(20, 20, 24),
+        Content = Color3.fromRGB(25, 25, 30),
+        TabBg = Color3.fromRGB(18, 18, 22),
+        ActiveTab = Color3.fromRGB(28, 28, 34),
+        Text = Color3.fromRGB(240, 240, 250),
+        Muted = Color3.fromRGB(140, 140, 155),
+        Accent = Color3.fromRGB(120, 130, 255),
+        AccentDark = Color3.fromRGB(95, 105, 230),
+        Line = Color3.fromRGB(35, 35, 42),
+        Track = Color3.fromRGB(38, 38, 45),
+        Dropdown = Color3.fromRGB(22, 22, 28),
+        ToggleOn = Color3.fromRGB(120, 130, 255),
+        ToggleOff = Color3.fromRGB(45, 45, 52),
+        Slider = Color3.fromRGB(120, 130, 255),
+        Button = Color3.fromRGB(120, 130, 255),
+        ButtonHover = Color3.fromRGB(135, 145, 255),
+        Success = Color3.fromRGB(75, 210, 115),
+        Warning = Color3.fromRGB(255, 180, 30),
+        Danger = Color3.fromRGB(255, 75, 75),
+        InputBg = Color3.fromRGB(28, 28, 34),
+        InputStroke = Color3.fromRGB(45, 45, 55),
+    },
+    Light = {
+        Main = Color3.fromRGB(250, 250, 252),
+        Background = Color3.fromRGB(245, 245, 248),
+        Content = Color3.fromRGB(240, 240, 244),
+        TabBg = Color3.fromRGB(242, 242, 246),
+        ActiveTab = Color3.fromRGB(235, 235, 240),
+        Text = Color3.fromRGB(20, 20, 30),
+        Muted = Color3.fromRGB(110, 110, 125),
+        Accent = Color3.fromRGB(100, 110, 235),
+        AccentDark = Color3.fromRGB(80, 90, 215),
+        Line = Color3.fromRGB(220, 220, 225),
+        Track = Color3.fromRGB(215, 215, 220),
+        Dropdown = Color3.fromRGB(238, 238, 242),
+        ToggleOn = Color3.fromRGB(100, 110, 235),
+        ToggleOff = Color3.fromRGB(200, 200, 205),
+        Slider = Color3.fromRGB(100, 110, 235),
+        Button = Color3.fromRGB(100, 110, 235),
+        ButtonHover = Color3.fromRGB(115, 125, 245),
+        Success = Color3.fromRGB(65, 190, 100),
+        Warning = Color3.fromRGB(245, 165, 20),
+        Danger = Color3.fromRGB(240, 65, 65),
+        InputBg = Color3.fromRGB(235, 235, 240),
+        InputStroke = Color3.fromRGB(210, 210, 220),
+    }
+}
+
+local CURRENT_THEME = THEMES.Dark
+
+-- ==================== ANIMATION PRESETS ====================
+local ANIMATIONS = {
+    Fast = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+    Normal = TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+    Smooth = TweenInfo.new(0.35, Enum.EasingStyle.Cubic, Enum.EasingDirection.InOut),
+    Elastic = TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    Spring = TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+}
+
+-- ==================== UTILITY FUNCTIONS ====================
+local Utility = {}
+
+function Utility.Create(className, properties)
+    local instance = Instance.new(className)
+    for property, value in pairs(properties) do
+        if property ~= "Parent" then
+            instance[property] = value
+        end
+    end
+    if properties.Parent then
+        instance.Parent = properties.Parent
+    end
+    return instance
+end
+
+function Utility.Round(parent, radius)
+    return Utility.Create("UICorner", {
+        Parent = parent,
+        CornerRadius = UDim.new(0, radius or 8)
+    })
+end
+
+function Utility.Stroke(parent, thickness, color, transparency)
+    return Utility.Create("UIStroke", {
+        Parent = parent,
+        Thickness = thickness or 1,
+        Color = color or CURRENT_THEME.Line,
+        Transparency = transparency or 0.7
+    })
+end
+
+function Utility.Shadow(parent, size, transparency)
+    return Utility.Create("ImageLabel", {
+        Parent = parent,
+        Name = "Shadow",
+        Image = "rbxassetid://1316045217",
+        ImageColor3 = Color3.fromRGB(0, 0, 0),
+        ImageTransparency = transparency or 0.85,
+        ScaleType = Enum.ScaleType.Slice,
+        SliceCenter = Rect.new(10, 10, 118, 118),
+        Size = UDim2.new(1, size or 30, 1, size or 30),
+        Position = UDim2.new(0, -(size or 30)/2, 0, -(size or 30)/2),
+        BackgroundTransparency = 1,
+        ZIndex = -1
+    })
+end
+
+function Utility.Padding(parent, all)
+    return Utility.Create("UIPadding", {
+        Parent = parent,
+        PaddingLeft = UDim.new(0, all or 10),
+        PaddingRight = UDim.new(0, all or 10),
+        PaddingTop = UDim.new(0, all or 10),
+        PaddingBottom = UDim.new(0, all or 10)
+    })
+end
+
+function Utility.AnimateHover(object, hoverColor, normalColor, animationSpeed)
+    object.MouseEnter:Connect(function()
+        TweenService:Create(object, animationSpeed or ANIMATIONS.Fast, {
+            BackgroundColor3 = hoverColor
+        }):Play()
+    end)
+    object.MouseLeave:Connect(function()
+        TweenService:Create(object, animationSpeed or ANIMATIONS.Fast, {
+            BackgroundColor3 = normalColor
+        }):Play()
+    end)
+end
+
+function Utility.Ripple(button)
+    button.ClipsDescendants = true
+    button.MouseButton1Click:Connect(function()
+        local ripple = Utility.Create("Frame", {
+            Parent = button,
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            Size = UDim2.new(0, 0, 0, 0),
+            BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+            BackgroundTransparency = 0.5,
+            BorderSizePixel = 0,
+            ZIndex = 100
+        })
+        Utility.Round(ripple, 999)
+        
+        TweenService:Create(ripple, TweenInfo.new(0.5), {
+            Size = UDim2.new(2, 0, 2, 0),
+            BackgroundTransparency = 1
+        }):Play()
+        
+        task.delay(0.5, function()
+            ripple:Destroy()
+        end)
+    end)
+end
+
+-- ==================== CONFIG SYSTEM ====================
+local ConfigSystem = {}
+ConfigSystem.__index = ConfigSystem
+
+function ConfigSystem.new(folderName)
+    local self = setmetatable({}, ConfigSystem)
+    self.FolderName = folderName or "LumaHub"
+    self.ConfigFileName = self.FolderName .. "/config.json"
+    self.AutoSave = true
+    self.Callbacks = {}
+    
+    if not isfolder(self.FolderName) then
+        makefolder(self.FolderName)
+    end
+    
+    return self
+end
+
+function ConfigSystem:Save(data)
+    if not self.AutoSave then return false end
+    local success = pcall(function()
+        writefile(self.ConfigFileName, HttpService:JSONEncode(data))
+    end)
+    return success
+end
+
+function ConfigSystem:Load()
+    local success, content = pcall(function()
+        return readfile(self.ConfigFileName)
+    end)
+    
+    if success and content and content ~= "" then
+        local decodeSuccess, data = pcall(function()
+            return HttpService:JSONDecode(content)
+        end)
+        if decodeSuccess and data then
+            return data
+        end
+    end
+    return {}
+end
+
+function ConfigSystem:RegisterCallback(key, callback)
+    self.Callbacks[key] = callback
+end
+
+function ConfigSystem:ExecuteCallbacks(data)
+    for key, value in pairs(data) do
+        if self.Callbacks[key] then
+            task.spawn(function()
+                self.Callbacks[key](value)
+            end)
+        end
+    end
+end
+
+-- ==================== MOUSE FIX ====================
+local function InitializeMouseFix()
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.LeftShift then
+            task.spawn(function()
+                task.wait(0.1)
+                if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
+                    UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                    task.wait(0.05)
+                    UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+                end
+            end)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.LeftShift then
+            task.spawn(function()
+                task.wait(0.1)
+                if UserInputService.MouseBehavior ~= Enum.MouseBehavior.LockCenter then
+                    UserInputService.MouseIconEnabled = true
+                    UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                end
+            end)
+        end
+    end)
+end
+
+-- ==================== WINDOW CLASS ====================
+function LumaHub:CreateWindow(options)
+    options = options or {}
+    
+    -- Prevent multiple GUIs
+    if PlayerGui:FindFirstChild("LumaHub") then
+        PlayerGui:FindFirstChild("LumaHub"):Destroy()
+        task.wait(0.1)
+    end
+    
+    InitializeMouseFix()
+    
+    local Window = {
+        Name = options.Name or "Luma Hub",
+        Size = options.Size or UDim2.new(0, 420, 0, 360),
+        ToggleKey = options.ToggleKey or Enum.KeyCode.RightShift,
+        Theme = options.Theme or "Dark",
+        Tabs = {},
+        CurrentTab = nil,
+        ConfigData = {},
+        IsOpen = false,
+    }
+    
+    CURRENT_THEME = THEMES[Window.Theme] or THEMES.Dark
+    
+    -- Initialize Config System
+    Window.Config = ConfigSystem.new(options.FolderName or "LumaHub")
+    Window.Config.AutoSave = options.AutoSave ~= false
+    Window.ConfigData = Window.Config:Load()
+    
+    -- ==================== GUI SETUP ====================
+    local ScreenGui = Utility.Create("ScreenGui", {
+        Name = "LumaHub",
+        Parent = PlayerGui,
+        ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        IgnoreGuiInset = true,
+    })
+    
+    -- Toggle Button
+    local ToggleButton = Utility.Create("TextButton", {
+        Parent = ScreenGui,
+        AnchorPoint = Vector2.new(0.5, 0),
+        Position = UDim2.new(0.5, 0, 0, 10),
+        Size = UDim2.new(0, 140, 0, 36),
+        BackgroundColor3 = CURRENT_THEME.Background,
+        BackgroundTransparency = 0.2,
+        BorderSizePixel = 0,
+        Text = "✦ Luma Hub",
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
+        TextColor3 = CURRENT_THEME.Text,
+        AutoButtonColor = false,
+    })
+    Utility.Round(ToggleButton, 10)
+    Utility.Stroke(ToggleButton, 1, CURRENT_THEME.Accent, 0.5)
+    Utility.Shadow(ToggleButton, 20, 0.9)
+    Utility.Ripple(ToggleButton)
+    
+    -- Main Frame
+    local MainFrame = Utility.Create("Frame", {
+        Parent = ScreenGui,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = Window.Size,
+        BackgroundColor3 = CURRENT_THEME.Main,
+        BorderSizePixel = 0,
+        ClipsDescendants = true,
+        Visible = false,
+    })
+    Utility.Round(MainFrame, 14)
+    Utility.Stroke(MainFrame, 1, CURRENT_THEME.Line, 0.6)
+    Utility.Shadow(MainFrame, 50, 0.75)
+    
+    -- Top Bar
+    local TopBar = Utility.Create("Frame", {
+        Parent = MainFrame,
+        Size = UDim2.new(1, 0, 0, 40),
+        BackgroundTransparency = 1
+    })
+    
+    local Title = Utility.Create("TextLabel", {
+        Parent = TopBar,
+        Position = UDim2.new(0, 16, 0, 0),
+        Size = UDim2.new(0.6, -16, 1, 0),
+        BackgroundTransparency = 1,
+        Text = "✦ " .. Window.Name,
+        Font = Enum.Font.GothamBold,
+        TextSize = 16,
+        TextColor3 = CURRENT_THEME.Text,
+        TextXAlignment = Enum.TextXAlignment.Left,
+    })
+    
+    local CloseButton = Utility.Create("TextButton", {
+        Parent = TopBar,
+        AnchorPoint = Vector2.new(1, 0.5),
+        Position = UDim2.new(1, -12, 0.5, 0),
+        Size = UDim2.new(0, 28, 0, 28),
+        BackgroundColor3 = CURRENT_THEME.Content,
+        BackgroundTransparency = 0.3,
+        BorderSizePixel = 0,
+        Text = "×",
+        Font = Enum.Font.GothamBold,
+        TextSize = 22,
+        TextColor3 = CURRENT_THEME.Muted,
+        AutoButtonColor = false,
+    })
+    Utility.Round(CloseButton, 8)
+    Utility.AnimateHover(CloseButton, CURRENT_THEME.Danger, CURRENT_THEME.Content)
+    Utility.Ripple(CloseButton)
+    
+    -- Tab Bar Container
+    local TabBarContainer = Utility.Create("Frame", {
+        Parent = MainFrame,
+        Position = UDim2.new(0, 12, 0, 44),
+        Size = UDim2.new(1, -24, 0, 34),
+        BackgroundColor3 = CURRENT_THEME.TabBg,
+        BackgroundTransparency = 0.2,
+    })
+    Utility.Round(TabBarContainer, 10)
+    
+    local TabBar = Utility.Create("ScrollingFrame", {
+        Parent = TabBarContainer,
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 0,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.X,
+        ScrollingDirection = Enum.ScrollingDirection.X,
+    })
+    
+    Utility.Create("UIListLayout", {
+        Parent = TabBar,
+        FillDirection = Enum.FillDirection.Horizontal,
+        Padding = UDim.new(0, 6),
+        HorizontalAlignment = Enum.HorizontalAlignment.Left,
+        VerticalAlignment = Enum.VerticalAlignment.Center
+    })
+    Utility.Padding(TabBar, 5)
+    
+    -- Content Container
+    local ContentContainer = Utility.Create("Frame", {
+        Parent = MainFrame,
+        Position = UDim2.new(0, 12, 0, 82),
+        Size = UDim2.new(1, -24, 1, -94),
+        BackgroundTransparency = 1,
+        ClipsDescendants = true,
+    })
+    
+    -- ==================== WINDOW FUNCTIONS ====================
+    function Window:Toggle()
+        Window.IsOpen = not Window.IsOpen
+        
+        if Window.IsOpen then
+            MainFrame.Visible = true
+            MainFrame.Size = UDim2.new(0, 0, 0, 0)
+            MainFrame.BackgroundTransparency = 1
+            
+            TweenService:Create(MainFrame, ANIMATIONS.Elastic, {
+                Size = Window.Size,
+                BackgroundTransparency = 0
+            }):Play()
+            
+            for _, obj in ipairs(MainFrame:GetDescendants()) do
+                if obj:IsA("GuiObject") and obj.BackgroundTransparency < 1 then
+                    local origTrans = obj.BackgroundTransparency
+                    obj.BackgroundTransparency = 1
+                    TweenService:Create(obj, ANIMATIONS.Normal, {
+                        BackgroundTransparency = origTrans
+                    }):Play()
+                end
+                if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+                    local origTextTrans = obj.TextTransparency
+                    obj.TextTransparency = 1
+                    TweenService:Create(obj, ANIMATIONS.Normal, {
+                        TextTransparency = origTextTrans
+                    }):Play()
+                end
+            end
+            
+            TweenService:Create(ToggleButton, ANIMATIONS.Normal, {
+                BackgroundTransparency = 0.5,
+                TextTransparency = 0.4
+            }):Play()
+        else
+            TweenService:Create(MainFrame, ANIMATIONS.Smooth, {
+                Size = UDim2.new(0, 0, 0, 0),
+                BackgroundTransparency = 1
+            }):Play()
+            
+            TweenService:Create(ToggleButton, ANIMATIONS.Normal, {
+                BackgroundTransparency = 0.2,
+                TextTransparency = 0
+            }):Play()
+            
+            task.wait(0.35)
+            MainFrame.Visible = false
+        end
+    end
+    
+    function Window:UpdateConfig(key, value)
+        self.ConfigData[key] = value
+        self.Config:Save(self.ConfigData)
+    end
+    
+    function Window:GetConfig(key, default)
+        return self.ConfigData[key] ~= nil and self.ConfigData[key] or default
+    end
+    
+    -- ==================== EVENT CONNECTIONS ====================
+    ToggleButton.MouseButton1Click:Connect(function()
+        Window:Toggle()
+    end)
+    
+    CloseButton.MouseButton1Click:Connect(function()
+        if Window.IsOpen then
+            Window:Toggle()
+        end
+    end)
+    
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == Window.ToggleKey then
+            Window:Toggle()
+        end
+    end)
+    
+    -- Dragging
+    local dragging, dragStart, startPos = false, nil, nil
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            TweenService:Create(MainFrame, ANIMATIONS.Fast, {
+                Position = UDim2.new(
+                    startPos.X.Scale,
+                    startPos.X.Offset + delta.X,
+                    startPos.Y.Scale,
+                    startPos.Y.Offset + delta.Y
+                )
+            }):Play()
+        end
+    end)
+    
+    -- ==================== TAB CREATION ====================
+    local isFirstTab = true
+    
+    function Window:CreateTab(tabName, icon)
+        local Tab = {
+            Name = tabName,
+            Elements = {}
+        }
+        
+        local TabButton = Utility.Create("TextButton", {
+            Parent = TabBar,
+            Size = UDim2.new(0, 0, 0, 24),
+            AutomaticSize = Enum.AutomaticSize.X,
+            BackgroundColor3 = CURRENT_THEME.ActiveTab,
+            BackgroundTransparency = isFirstTab and 0.1 or 1,
+            BorderSizePixel = 0,
+            Text = (icon or "●") .. " " .. tabName,
+            Font = Enum.Font.GothamMedium,
+            TextSize = 13,
+            TextColor3 = isFirstTab and CURRENT_THEME.Text or CURRENT_THEME.Muted,
+            AutoButtonColor = false,
+        })
+        Utility.Round(TabButton, 7)
+        Utility.Padding(TabButton, 12)
+        Utility.Ripple(TabButton)
+        
+        local TabContent = Utility.Create("ScrollingFrame", {
+            Parent = ContentContainer,
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 4,
+            ScrollBarImageColor3 = CURRENT_THEME.Accent,
+            ScrollBarImageTransparency = 0.5,
+            CanvasSize = UDim2.new(0, 0, 0, 0),
+            AutomaticCanvasSize = Enum.AutomaticSize.Y,
+            Visible = isFirstTab,
+        })
+        
+        Utility.Create("UIListLayout", {
+            Parent = TabContent,
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 10)
+        })
+        
+        if isFirstTab then
+            Window.CurrentTab = TabContent
+            isFirstTab = false
+        end
+        
+        TabButton.MouseButton1Click:Connect(function()
+            if Window.CurrentTab and Window.CurrentTab ~= TabContent then
+                TweenService:Create(Window.CurrentTab, ANIMATIONS.Fast, {
+                    Position = UDim2.new(-0.15, 0, 0, 0)
+                }):Play()
+                task.wait(0.15)
+                Window.CurrentTab.Visible = false
+            end
+            
+            for _, btn in ipairs(TabBar:GetChildren()) do
+                if btn:IsA("TextButton") then
+                    TweenService:Create(btn, ANIMATIONS.Normal, {
+                        BackgroundTransparency = 1,
+                        TextColor3 = CURRENT_THEME.Muted
+                    }):Play()
+                end
+            end
+            
+            TweenService:Create(TabButton, ANIMATIONS.Normal, {
+                BackgroundTransparency = 0.1,
+                TextColor3 = CURRENT_THEME.Text
+            }):Play()
+            
+            TabContent.Position = UDim2.new(0.15, 0, 0, 0)
+            TabContent.Visible = true
+            TweenService:Create(TabContent, ANIMATIONS.Normal, {
+                Position = UDim2.new(0, 0, 0, 0)
+            }):Play()
+            
+            Window.CurrentTab = TabContent
+        end)
+        
+        -- ==================== SECTION CREATION ====================
+        function Tab:CreateSection(sectionName)
+            local Section = {}
+            
+            local SectionFrame = Utility.Create("Frame", {
+                Parent = TabContent,
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundColor3 = CURRENT_THEME.Content,
+                BackgroundTransparency = 0.5,
+            })
+            Utility.Round(SectionFrame, 12)
+            
+            local SectionTitle = Utility.Create("TextLabel", {
+                Parent = SectionFrame,
+                Size = UDim2.new(1, 0, 0, 32),
+                BackgroundTransparency = 1,
+                Text = sectionName,
+                Font = Enum.Font.GothamBold,
+                TextSize = 14,
+                TextColor3 = CURRENT_THEME.Text,
+                TextXAlignment = Enum.TextXAlignment.Left,
+            })
+            Utility.Padding(SectionTitle, 14)
+            
+            local SectionContent = Utility.Create("Frame", {
+                Parent = SectionFrame,
+                Position = UDim2.new(0, 12, 0, 32),
+                Size = UDim2.new(1, -24, 0, 0),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+            })
+            
+            Utility.Create("UIListLayout", {
+                Parent = SectionContent,
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Padding = UDim.new(0, 10)
+            })
+            Utility.Padding(SectionContent, 0)
+            SectionContent.UIPadding.PaddingBottom = UDim.new(0, 12)
+            
+            -- ==================== TOGGLE ====================
+            function Section:CreateToggle(options)
+                local saveKey = options.Name
+                local defaultValue = Window:GetConfig(saveKey, options.Default or false)
+                
+                local ToggleFrame = Utility.Create("Frame", {
+                    Parent = SectionContent,
+                    Size = UDim2.new(1, 0, 0, 32),
+                    BackgroundTransparency = 1,
+                })
+                
+                local Label = Utility.Create("TextLabel", {
+                    Parent = ToggleFrame,
+                    Size = UDim2.new(1, -50, 1, 0),
+                    BackgroundTransparency = 1,
+                    Text = options.Name or "Toggle",
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    TextColor3 = CURRENT_THEME.Text,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                })
+                
+                local ToggleButton = Utility.Create("TextButton", {
+                    Parent = ToggleFrame,
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Position = UDim2.new(1, 0, 0.5, 0),
+                    Size = UDim2.new(0, 44, 0, 24),
+                    BackgroundColor3 = defaultValue and CURRENT_THEME.ToggleOn or CURRENT_THEME.ToggleOff,
+                    BorderSizePixel = 0,
+                    AutoButtonColor = false,
+                    Text = "",
+                })
+                Utility.Round(ToggleButton, 12)
+                
+                local Knob = Utility.Create("Frame", {
+                    Parent = ToggleButton,
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    Position = defaultValue and UDim2.new(0.75, 0, 0.5, 0) or UDim2.new(0.25, 0, 0.5, 0),
+                    Size = UDim2.new(0, 18, 0, 18),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BorderSizePixel = 0,
+                })
+                Utility.Round(Knob, 9)
+                Utility.Shadow(Knob, 8, 0.8)
+                
+                local isToggled = defaultValue
+                
+                local function UpdateToggle(value)
+                    isToggled = value
+                    TweenService:Create(ToggleButton, ANIMATIONS.Normal, {
+                        BackgroundColor3 = isToggled and CURRENT_THEME.ToggleOn or CURRENT_THEME.ToggleOff
+                    }):Play()
+                    TweenService:Create(Knob, ANIMATIONS.Smooth, {
+                        Position = isToggled and UDim2.new(0.75, 0, 0.5, 0) or UDim2.new(0.25, 0, 0.5, 0)
+                    }):Play()
+                end
+                
+                ToggleButton.MouseButton1Click:Connect(function()
+                    isToggled = not isToggled
+                    UpdateToggle(isToggled)
+                    Window:UpdateConfig(saveKey, isToggled)
+                    if options.Callback then
+                        options.Callback(isToggled)
+                    end
+                end)
+                
+                Window.Config:RegisterCallback(saveKey, function(value)
+                    UpdateToggle(value)
+                    if options.Callback then
+                        options.Callback(value)
+                    end
+                end)
+                
+                return ToggleFrame
+            end
+            
+            -- ==================== BUTTON ====================
+            function Section:CreateButton(options)
+                local ButtonFrame = Utility.Create("TextButton", {
+                    Parent = SectionContent,
+                    Size = UDim2.new(1, 0, 0, 36),
+                    BackgroundColor3 = CURRENT_THEME.Button,
+                    BorderSizePixel = 0,
+                    AutoButtonColor = false,
+                    Text = options.Name or "Button",
+                    Font = Enum.Font.GothamMedium,
+                    TextSize = 14,
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                })
+                Utility.Round(ButtonFrame, 10)
+                Utility.AnimateHover(ButtonFrame, CURRENT_THEME.ButtonHover, CURRENT_THEME.Button)
+                Utility.Ripple(ButtonFrame)
+                
+                ButtonFrame.MouseButton1Click:Connect(function()
+                    TweenService:Create(ButtonFrame, TweenInfo.new(0.1), {
+                        Size = UDim2.new(0.97, 0, 0, 34)
+                    }):Play()
+                    task.wait(0.1)
+                    TweenService:Create(ButtonFrame, ANIMATIONS.Elastic, {
+                        Size = UDim2.new(1, 0, 0, 36)
+                    }):Play()
+                    
+                    if options.Callback then
+                        options.Callback()
+                    end
+                end)
+                
+                -- Popup system for buttons
+                if options.Popup then
+                    local PopupContainer = Utility.Create("Frame", {
+                        Parent = ButtonFrame,
+                        AnchorPoint = Vector2.new(1, 0),
+                        Position = UDim2.new(1, -8, 0, 8),
+                        Size = UDim2.new(0, 20, 0, 20),
+                        BackgroundColor3 = CURRENT_THEME.Accent,
+                        BorderSizePixel = 0,
+                        ZIndex = 10,
+                    })
+                    Utility.Round(PopupContainer, 10)
+                    
+                    local PopupIcon = Utility.Create("TextLabel", {
+                        Parent = PopupContainer,
+                        Size = UDim2.new(1, 0, 1, 0),
+                        BackgroundTransparency = 1,
+                        Text = "▼",
+                        Font = Enum.Font.GothamBold,
+                        TextSize = 10,
+                        TextColor3 = Color3.fromRGB(255, 255, 255),
+                    })
+                    
+                    local isPopupOpen = false
+                    local PopupFrame = Utility.Create("Frame", {
+                        Parent = SectionContent,
+                        Size = UDim2.new(1, 0, 0, 0),
+                        BackgroundColor3 = CURRENT_THEME.Dropdown,
+                        BorderSizePixel = 0,
+                        ClipsDescendants = true,
+                        Visible = false,
+                    })
+                    Utility.Round(PopupFrame, 10)
+                    Utility.Stroke(PopupFrame, 1, CURRENT_THEME.Line, 0.5)
+                    
+                    local PopupContent = Utility.Create("Frame", {
+                        Parent = PopupFrame,
+                        Size = UDim2.new(1, -16, 1, -16),
+                        Position = UDim2.new(0, 8, 0, 8),
+                        BackgroundTransparency = 1,
+                    })
+                    
+                    Utility.Create("UIListLayout", {
+                        Parent = PopupContent,
+                        SortOrder = Enum.SortOrder.LayoutOrder,
+                        Padding = UDim.new(0, 8)
+                    })
+                    
+                    PopupContainer.InputBegan:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                            isPopupOpen = not isPopupOpen
+                            
+                            if isPopupOpen then
+                                PopupFrame.Visible = true
+                                local contentHeight = PopupContent.UIListLayout.AbsoluteContentSize.Y + 16
+                                TweenService:Create(PopupFrame, ANIMATIONS.Normal, {
+                                    Size = UDim2.new(1, 0, 0, contentHeight)
+                                }):Play()
+                                TweenService:Create(PopupIcon, ANIMATIONS.Fast, {
+                                    Rotation = 180
+                                }):Play()
+                            else
+                                TweenService:Create(PopupFrame, ANIMATIONS.Normal, {
+                                    Size = UDim2.new(1, 0, 0, 0)
+                                }):Play()
+                                TweenService:Create(PopupIcon, ANIMATIONS.Fast, {
+                                    Rotation = 0
+                                }):Play()
+                                task.wait(0.25)
+                                PopupFrame.Visible = false
+                            end
+                        end
+                    end)
+                    
+                    -- Add popup elements
+                    if options.PopupElements then
+                        for _, element in ipairs(options.PopupElements) do
+                            if element.Type == "Toggle" then
+                                local popupSaveKey = element.Name
+                                local popupDefault = Window:GetConfig(popupSaveKey, element.Default or false)
+                                
+                                local PopupToggle = Utility.Create("Frame", {
+                                    Parent = PopupContent,
+                                    Size = UDim2.new(1, 0, 0, 28),
+                                    BackgroundTransparency = 1,
+                                })
+                                
+                                local PopupLabel = Utility.Create("TextLabel", {
+                                    Parent = PopupToggle,
+                                    Size = UDim2.new(1, -40, 1, 0),
+                                    BackgroundTransparency = 1,
+                                    Text = element.Name,
+                                    Font = Enum.Font.Gotham,
+                                    TextSize = 12,
+                                    TextColor3 = CURRENT_THEME.Text,
+                                    TextXAlignment = Enum.TextXAlignment.Left,
+                                })
+                                
+                                local PopupToggleBtn = Utility.Create("TextButton", {
+                                    Parent = PopupToggle,
+                                    AnchorPoint = Vector2.new(1, 0.5),
+                                    Position = UDim2.new(1, 0, 0.5, 0),
+                                    Size = UDim2.new(0, 36, 0, 20),
+                                    BackgroundColor3 = popupDefault and CURRENT_THEME.ToggleOn or CURRENT_THEME.ToggleOff,
+                                    BorderSizePixel = 0,
+                                    AutoButtonColor = false,
+                                    Text = "",
+                                })
+                                Utility.Round(PopupToggleBtn, 10)
+                                
+                                local PopupKnob = Utility.Create("Frame", {
+                                    Parent = PopupToggleBtn,
+                                    AnchorPoint = Vector2.new(0.5, 0.5),
+                                    Position = popupDefault and UDim2.new(0.75, 0, 0.5, 0) or UDim2.new(0.25, 0, 0.5, 0),
+                                    Size = UDim2.new(0, 14, 0, 14),
+                                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                                    BorderSizePixel = 0,
+                                })
+                                Utility.Round(PopupKnob, 7)
+                                
+                                local popupToggled = popupDefault
+                                
+                                PopupToggleBtn.MouseButton1Click:Connect(function()
+                                    popupToggled = not popupToggled
+                                    TweenService:Create(PopupToggleBtn, ANIMATIONS.Normal, {
+                                        BackgroundColor3 = popupToggled and CURRENT_THEME.ToggleOn or CURRENT_THEME.ToggleOff
+                                    }):Play()
+                                    TweenService:Create(PopupKnob, ANIMATIONS.Smooth, {
+                                        Position = popupToggled and UDim2.new(0.75, 0, 0.5, 0) or UDim2.new(0.25, 0, 0.5, 0)
+                                    }):Play()
+                                    Window:UpdateConfig(popupSaveKey, popupToggled)
+                                    if element.Callback then
+                                        element.Callback(popupToggled)
+                                    end
+                                end)
+                            end
+                        end
+                    end
+                end
+                
+                return ButtonFrame
+            end
+            
+            -- ==================== SLIDER ====================
+            function Section:CreateSlider(options)
+                local saveKey = options.Name
+                local min = options.Min or 0
+                local max = options.Max or 100
+                local default = Window:GetConfig(saveKey, options.Default or min)
+                local increment = options.Increment or 1
+                local suffix = options.Suffix or ""
+                
+                local SliderFrame = Utility.Create("Frame", {
+                    Parent = SectionContent,
+                    Size = UDim2.new(1, 0, 0, 45),
+                    BackgroundTransparency = 1,
+                })
+                
+                local Label = Utility.Create("TextLabel", {
+                    Parent = SliderFrame,
+                    Size = UDim2.new(0.6, 0, 0, 18),
+                    BackgroundTransparency = 1,
+                    Text = options.Name or "Slider",
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    TextColor3 = CURRENT_THEME.Text,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                })
+                
+                local ValueLabel = Utility.Create("TextLabel", {
+                    Parent = SliderFrame,
+                    AnchorPoint = Vector2.new(1, 0),
+                    Position = UDim2.new(1, 0, 0, 0),
+                    Size = UDim2.new(0.35, 0, 0, 18),
+                    BackgroundTransparency = 1,
+                    Text = tostring(default) .. suffix,
+                    Font = Enum.Font.GothamBold,
+                    TextSize = 13,
+                    TextColor3 = CURRENT_THEME.Accent,
+                    TextXAlignment = Enum.TextXAlignment.Right,
+                })
+                
+                local SliderBack = Utility.Create("Frame", {
+                    Parent = SliderFrame,
+                    Position = UDim2.new(0, 0, 0, 25),
+                    Size = UDim2.new(1, 0, 0, 6),
+                    BackgroundColor3 = CURRENT_THEME.Track,
+                    BorderSizePixel = 0,
+                })
+                Utility.Round(SliderBack, 3)
+                
+                local SliderFill = Utility.Create("Frame", {
+                    Parent = SliderBack,
+                    Size = UDim2.new((default - min) / (max - min), 0, 1, 0),
+                    BackgroundColor3 = CURRENT_THEME.Slider,
+                    BorderSizePixel = 0,
+                })
+                Utility.Round(SliderFill, 3)
+                
+                local SliderButton = Utility.Create("TextButton", {
+                    Parent = SliderBack,
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    Position = UDim2.new((default - min) / (max - min), 0, 0.5, 0),
+                    Size = UDim2.new(0, 16, 0, 16),
+                    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                    BorderSizePixel = 0,
+                    AutoButtonColor = false,
+                    Text = "",
+                })
+                Utility.Round(SliderButton, 8)
+                Utility.Shadow(SliderButton, 8, 0.8)
+                
+                local dragging = false
+                local currentValue = default
+                
+                local function UpdateSlider(value)
+                    value = math.clamp(value, min, max)
+                    value = math.floor(value / increment + 0.5) * increment
+                    currentValue = value
+                    
+                    local percent = (value - min) / (max - min)
+                    ValueLabel.Text = tostring(value) .. suffix
+                    
+                    TweenService:Create(SliderFill, ANIMATIONS.Fast, {
+                        Size = UDim2.new(percent, 0, 1, 0)
+                    }):Play()
+                    TweenService:Create(SliderButton, ANIMATIONS.Fast, {
+                        Position = UDim2.new(percent, 0, 0.5, 0)
+                    }):Play()
+                end
+                
+                SliderButton.MouseButton1Down:Connect(function()
+                    dragging = true
+                    TweenService:Create(SliderButton, ANIMATIONS.Fast, {
+                        Size = UDim2.new(0, 18, 0, 18)
+                    }):Play()
+                end)
+                
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        if dragging then
+                            dragging = false
+                            TweenService:Create(SliderButton, ANIMATIONS.Fast, {
+                                Size = UDim2.new(0, 16, 0, 16)
+                            }):Play()
+                            Window:UpdateConfig(saveKey, currentValue)
+                            if options.Callback then
+                                options.Callback(currentValue)
+                            end
+                        end
+                    end
+                end)
+                
+                UserInputService.InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local relativeX = math.clamp((input.Position.X - SliderBack.AbsolutePosition.X) / SliderBack.AbsoluteSize.X, 0, 1)
+                        local value = min + (max - min) * relativeX
+                        UpdateSlider(value)
+                    end
+                end)
+                
+                SliderBack.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        local relativeX = math.clamp((input.Position.X - SliderBack.AbsolutePosition.X) / SliderBack.AbsoluteSize.X, 0, 1)
+                        local value = min + (max - min) * relativeX
+                        UpdateSlider(value)
+                        Window:UpdateConfig(saveKey, value)
+                        if options.Callback then
+                            options.Callback(value)
+                        end
+                    end
+                end)
+                
+                Window.Config:RegisterCallback(saveKey, function(value)
+                    UpdateSlider(value)
+                    if options.Callback then
+                        options.Callback(value)
+                    end
+                end)
+                
+                return SliderFrame
+            end
+            
+            -- ==================== DROPDOWN ====================
+            function Section:CreateDropdown(options)
+                local saveKey = options.Name
+                local defaultValue = Window:GetConfig(saveKey, options.Default or (options.Options and options.Options[1] or "None"))
+                
+                local DropdownFrame = Utility.Create("Frame", {
+                    Parent = SectionContent,
+                    Size = UDim2.new(1, 0, 0, 36),
+                    BackgroundTransparency = 1,
+                })
+                
+                local Label = Utility.Create("TextLabel", {
+                    Parent = DropdownFrame,
+                    Size = UDim2.new(1, 0, 0, 18),
+                    BackgroundTransparency = 1,
+                    Text = options.Name or "Dropdown",
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    TextColor3 = CURRENT_THEME.Text,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                })
+                
+                local DropdownButton = Utility.Create("TextButton", {
+                    Parent = DropdownFrame,
+                    Position = UDim2.new(0, 0, 0, 22),
+                    Size = UDim2.new(1, 0, 0, 32),
+                    BackgroundColor3 = CURRENT_THEME.Dropdown,
+                    BorderSizePixel = 0,
+                    AutoButtonColor = false,
+                    Text = "",
+                })
+                Utility.Round(DropdownButton, 8)
+                Utility.Stroke(DropdownButton, 1, CURRENT_THEME.Line, 0.5)
+                
+                local SelectedText = Utility.Create("TextLabel", {
+                    Parent = DropdownButton,
+                    Position = UDim2.new(0, 12, 0, 0),
+                    Size = UDim2.new(1, -32, 1, 0),
+                    BackgroundTransparency = 1,
+                    Text = tostring(defaultValue),
+                    Font = Enum.Font.Gotham,
+                    TextSize = 12,
+                    TextColor3 = CURRENT_THEME.Text,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                })
+                
+                local Arrow = Utility.Create("TextLabel", {
+                    Parent = DropdownButton,
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Position = UDim2.new(1, -10, 0.5, 0),
+                    Size = UDim2.new(0, 20, 0, 20),
+                    BackgroundTransparency = 1,
+                    Text = "▼",
+                    Font = Enum.Font.GothamBold,
+                    TextSize = 10,
+                    TextColor3 = CURRENT_THEME.Muted,
+                })
+                
+                local DropdownList = Utility.Create("Frame", {
+                    Parent = SectionContent,
+                    Size = UDim2.new(1, 0, 0, 0),
+                    BackgroundColor3 = CURRENT_THEME.Dropdown,
+                    BorderSizePixel = 0,
+                    ClipsDescendants = true,
+                    Visible = false,
+                })
+                Utility.Round(DropdownList, 8)
+                Utility.Stroke(DropdownList, 1, CURRENT_THEME.Line, 0.5)
+                
+                local DropdownContent = Utility.Create("ScrollingFrame", {
+                    Parent = DropdownList,
+                    Size = UDim2.new(1, 0, 1, 0),
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    ScrollBarThickness = 3,
+                    ScrollBarImageColor3 = CURRENT_THEME.Accent,
+                    ScrollBarImageTransparency = 0.5,
+                    CanvasSize = UDim2.new(0, 0, 0, 0),
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                })
+                
+                Utility.Create("UIListLayout", {
+                    Parent = DropdownContent,
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, 2)
+                })
+                Utility.Padding(DropdownContent, 6)
+                
+                local isOpen = false
+                local currentValue = defaultValue
+                
+                DropdownButton.MouseButton1Click:Connect(function()
+                    isOpen = not isOpen
+                    
+                    if isOpen then
+                        DropdownList.Visible = true
+                        local maxHeight = math.min(#options.Options * 30 + 12, 150)
+                        TweenService:Create(DropdownList, ANIMATIONS.Normal, {
+                            Size = UDim2.new(1, 0, 0, maxHeight)
+                        }):Play()
+                        TweenService:Create(Arrow, ANIMATIONS.Fast, {
+                            Rotation = 180
+                        }):Play()
+                    else
+                        TweenService:Create(DropdownList, ANIMATIONS.Normal, {
+                            Size = UDim2.new(1, 0, 0, 0)
+                        }):Play()
+                        TweenService:Create(Arrow, ANIMATIONS.Fast, {
+                            Rotation = 0
+                        }):Play()
+                        task.wait(0.25)
+                        DropdownList.Visible = false
+                    end
+                end)
+                
+                for _, option in ipairs(options.Options or {}) do
+                    local OptionButton = Utility.Create("TextButton", {
+                        Parent = DropdownContent,
+                        Size = UDim2.new(1, 0, 0, 26),
+                        BackgroundColor3 = CURRENT_THEME.Content,
+                        BackgroundTransparency = option == currentValue and 0.3 or 1,
+                        BorderSizePixel = 0,
+                        AutoButtonColor = false,
+                        Text = tostring(option),
+                        Font = Enum.Font.Gotham,
+                        TextSize = 12,
+                        TextColor3 = option == currentValue and CURRENT_THEME.Accent or CURRENT_THEME.Text,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                    })
+                    Utility.Round(OptionButton, 6)
+                    Utility.Padding(OptionButton, 8)
+                    Utility.Ripple(OptionButton)
+                    
+                    OptionButton.MouseButton1Click:Connect(function()
+                        currentValue = option
+                        SelectedText.Text = tostring(option)
+                        Window:UpdateConfig(saveKey, option)
+                        
+                        for _, btn in ipairs(DropdownContent:GetChildren()) do
+                            if btn:IsA("TextButton") then
+                                TweenService:Create(btn, ANIMATIONS.Fast, {
+                                    BackgroundTransparency = 1,
+                                    TextColor3 = CURRENT_THEME.Text
+                                }):Play()
+                            end
+                        end
+                        
+                        TweenService:Create(OptionButton, ANIMATIONS.Fast, {
+                            BackgroundTransparency = 0.3,
+                            TextColor3 = CURRENT_THEME.Accent
+                        }):Play()
+                        
+                        if options.Callback then
+                            options.Callback(option)
+                        end
+                        
+                        isOpen = false
+                        TweenService:Create(DropdownList, ANIMATIONS.Normal, {
+                            Size = UDim2.new(1, 0, 0, 0)
+                        }):Play()
+                        TweenService:Create(Arrow, ANIMATIONS.Fast, {
+                            Rotation = 0
+                        }):Play()
+                        task.wait(0.25)
+                        DropdownList.Visible = false
+                    end)
+                end
+                
+                Window.Config:RegisterCallback(saveKey, function(value)
+                    currentValue = value
+                    SelectedText.Text = tostring(value)
+                    if options.Callback then
+                        options.Callback(value)
+                    end
+                end)
+                
+                return DropdownFrame
+            end
+            
+            -- ==================== INPUT (TEXT INPUT) ====================
+            function Section:CreateInput(options)
+                local saveKey = options.Name
+                local defaultValue = Window:GetConfig(saveKey, options.Default or "")
+                
+                local InputFrame = Utility.Create("Frame", {
+                    Parent = SectionContent,
+                    Size = UDim2.new(1, 0, 0, 38),
+                    BackgroundTransparency = 1,
+                })
+                
+                local Label = Utility.Create("TextLabel", {
+                    Parent = InputFrame,
+                    Position = UDim2.new(0, 0, 0.5, -8),
+                    Size = UDim2.new(0.35, 0, 0, 16),
+                    BackgroundTransparency = 1,
+                    Text = options.Name or "Input",
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    TextColor3 = CURRENT_THEME.Text,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                })
+                
+                local InputBox = Utility.Create("TextBox", {
+                    Parent = InputFrame,
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Position = UDim2.new(1, 0, 0.5, 0),
+                    Size = UDim2.new(0.6, 0, 0, 30),
+                    BackgroundColor3 = CURRENT_THEME.InputBg,
+                    BorderSizePixel = 0,
+                    Text = tostring(defaultValue),
+                    PlaceholderText = options.Placeholder or "Enter text...",
+                    PlaceholderColor3 = CURRENT_THEME.Muted,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 12,
+                    TextColor3 = CURRENT_THEME.Text,
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    ClearTextOnFocus = false,
+                })
+                Utility.Round(InputBox, 8)
+                Utility.Stroke(InputBox, 1, CURRENT_THEME.InputStroke, 0.7)
+                
+                InputBox.Focused:Connect(function()
+                    TweenService:Create(InputBox.UIStroke, ANIMATIONS.Fast, {
+                        Color = CURRENT_THEME.Accent,
+                        Transparency = 0.3
+                    }):Play()
+                end)
+                
+                InputBox.FocusLost:Connect(function(enterPressed)
+                    TweenService:Create(InputBox.UIStroke, ANIMATIONS.Fast, {
+                        Color = CURRENT_THEME.InputStroke,
+                        Transparency = 0.7
+                    }):Play()
+                    
+                    if enterPressed then
+                        local text = InputBox.Text
+                        local value = tonumber(text) or text
+                        Window:UpdateConfig(saveKey, value)
+                        if options.Callback then
+                            options.Callback(value)
+                        end
+                    end
+                end)
+                
+                Window.Config:RegisterCallback(saveKey, function(value)
+                    InputBox.Text = tostring(value)
+                    if options.Callback then
+                        options.Callback(value)
+                    end
+                end)
+                
+                return InputFrame
+            end
+            
+            -- ==================== KEYBIND ====================
+            function Section:CreateKeybind(options)
+                local saveKey = options.Name
+                local defaultKey = Window:GetConfig(saveKey, options.Default or Enum.KeyCode.E)
+                
+                local KeybindFrame = Utility.Create("Frame", {
+                    Parent = SectionContent,
+                    Size = UDim2.new(1, 0, 0, 32),
+                    BackgroundTransparency = 1,
+                })
+                
+                local Label = Utility.Create("TextLabel", {
+                    Parent = KeybindFrame,
+                    Size = UDim2.new(1, -80, 1, 0),
+                    BackgroundTransparency = 1,
+                    Text = options.Name or "Keybind",
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    TextColor3 = CURRENT_THEME.Text,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                })
+                
+                local KeybindButton = Utility.Create("TextButton", {
+                    Parent = KeybindFrame,
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Position = UDim2.new(1, 0, 0.5, 0),
+                    Size = UDim2.new(0, 70, 0, 28),
+                    BackgroundColor3 = CURRENT_THEME.InputBg,
+                    BorderSizePixel = 0,
+                    AutoButtonColor = false,
+                    Text = defaultKey.Name,
+                    Font = Enum.Font.GothamMedium,
+                    TextSize = 12,
+                    TextColor3 = CURRENT_THEME.Text,
+                })
+                Utility.Round(KeybindButton, 8)
+                Utility.Stroke(KeybindButton, 1, CURRENT_THEME.InputStroke, 0.7)
+                
+                local currentKey = defaultKey
+                local isBinding = false
+                
+                KeybindButton.MouseButton1Click:Connect(function()
+                    isBinding = true
+                    KeybindButton.Text = "..."
+                    TweenService:Create(KeybindButton, ANIMATIONS.Fast, {
+                        BackgroundColor3 = CURRENT_THEME.Accent
+                    }):Play()
+                    TweenService:Create(KeybindButton.UIStroke, ANIMATIONS.Fast, {
+                        Color = CURRENT_THEME.Accent,
+                        Transparency = 0.3
+                    }):Play()
+                end)
+                
+                UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                    if isBinding then
+                        if input.UserInputType == Enum.UserInputType.Keyboard then
+                            currentKey = input.KeyCode
+                            KeybindButton.Text = input.KeyCode.Name
+                            isBinding = false
+                            
+                            TweenService:Create(KeybindButton, ANIMATIONS.Fast, {
+                                BackgroundColor3 = CURRENT_THEME.InputBg
+                            }):Play()
+                            TweenService:Create(KeybindButton.UIStroke, ANIMATIONS.Fast, {
+                                Color = CURRENT_THEME.InputStroke,
+                                Transparency = 0.7
+                            }):Play()
+                            
+                            Window:UpdateConfig(saveKey, currentKey)
+                        end
+                    elseif not gameProcessed and input.KeyCode == currentKey then
+                        if options.Callback then
+                            options.Callback()
+                        end
+                    end
+                end)
+                
+                Window.Config:RegisterCallback(saveKey, function(value)
+                    currentKey = value
+                    KeybindButton.Text = value.Name
+                end)
+                
+                return KeybindFrame
+            end
+            
+            -- ==================== LABEL ====================
+            function Section:CreateLabel(text)
+                local LabelFrame = Utility.Create("TextLabel", {
+                    Parent = SectionContent,
+                    Size = UDim2.new(1, 0, 0, 22),
+                    BackgroundTransparency = 1,
+                    Text = text or "Label",
+                    Font = Enum.Font.Gotham,
+                    TextSize = 13,
+                    TextColor3 = CURRENT_THEME.Muted,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextWrapped = true,
+                })
+                
+                function LabelFrame:UpdateText(newText)
+                    LabelFrame.Text = newText
+                end
+                
+                return LabelFrame
+            end
+            
+            -- ==================== DIVIDER ====================
+            function Section:CreateDivider()
+                local Divider = Utility.Create("Frame", {
+                    Parent = SectionContent,
+                    Size = UDim2.new(1, 0, 0, 1),
+                    BackgroundColor3 = CURRENT_THEME.Line,
+                    BackgroundTransparency = 0.5,
+                    BorderSizePixel = 0,
+                })
+                
+                return Divider
+            end
+            
+            return Section
+        end
+        
+        table.insert(Window.Tabs, {Button = TabButton, Content = TabContent})
+        return Tab
+    end
+    
+    -- ==================== NOTIFICATION SYSTEM ====================
+    function Window:Notify(options)
+        local notificationQueue = {}
+        local isShowingNotification = false
+        
+        local function ShowNotification()
+            if isShowingNotification then
+                table.insert(notificationQueue, options)
+                return
+            end
+            
+            isShowingNotification = true
+            
+            local Notification = Utility.Create("Frame", {
+                Parent = ScreenGui,
+                AnchorPoint = Vector2.new(1, 1),
+                Position = UDim2.new(1, 250, 1, -70),
+                Size = UDim2.new(0, 280, 0, 70),
+                BackgroundColor3 = CURRENT_THEME.Background,
+                BorderSizePixel = 0,
+            })
+            Utility.Round(Notification, 12)
+            Utility.Shadow(Notification, 30, 0.85)
+            
+            local accentColor = options.Type == "Success" and CURRENT_THEME.Success or
+                               options.Type == "Warning" and CURRENT_THEME.Warning or
+                               options.Type == "Error" and CURRENT_THEME.Danger or
+                               CURRENT_THEME.Accent
+            
+            local Accent = Utility.Create("Frame", {
+                Parent = Notification,
+                Size = UDim2.new(0, 4, 1, -12),
+                Position = UDim2.new(0, 6, 0, 6),
+                BackgroundColor3 = accentColor,
+                BorderSizePixel = 0,
+            })
+            Utility.Round(Accent, 2)
+            
+            local Icon = Utility.Create("TextLabel", {
+                Parent = Notification,
+                Position = UDim2.new(0, 18, 0, 12),
+                Size = UDim2.new(0, 24, 0, 24),
+                BackgroundTransparency = 1,
+                Text = options.Type == "Success" and "✓" or 
+                       options.Type == "Warning" and "⚠" or 
+                       options.Type == "Error" and "✕" or "ℹ",
+                Font = Enum.Font.GothamBold,
+                TextSize = 18,
+                TextColor3 = accentColor,
+            })
+            
+            local Title = Utility.Create("TextLabel", {
+                Parent = Notification,
+                Position = UDim2.new(0, 50, 0, 12),
+                Size = UDim2.new(1, -60, 0, 22),
+                BackgroundTransparency = 1,
+                Text = options.Title or "Notification",
+                Font = Enum.Font.GothamBold,
+                TextSize = 14,
+                TextColor3 = CURRENT_THEME.Text,
+                TextXAlignment = Enum.TextXAlignment.Left,
+            })
+            
+            local Message = Utility.Create("TextLabel", {
+                Parent = Notification,
+                Position = UDim2.new(0, 50, 0, 36),
+                Size = UDim2.new(1, -60, 0, 28),
+                BackgroundTransparency = 1,
+                Text = options.Content or "",
+                Font = Enum.Font.Gotham,
+                TextSize = 12,
+                TextColor3 = CURRENT_THEME.Muted,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextWrapped = true,
+            })
+            
+            local CloseBtn = Utility.Create("TextButton", {
+                Parent = Notification,
+                AnchorPoint = Vector2.new(1, 0),
+                Position = UDim2.new(1, -8, 0, 8),
+                Size = UDim2.new(0, 20, 0, 20),
+                BackgroundColor3 = CURRENT_THEME.Content,
+                BackgroundTransparency = 0.5,
+                BorderSizePixel = 0,
+                Text = "×",
+                Font = Enum.Font.GothamBold,
+                TextSize = 16,
+                TextColor3 = CURRENT_THEME.Muted,
+                AutoButtonColor = false,
+            })
+            Utility.Round(CloseBtn, 10)
+            
+            -- Slide in animation
+            TweenService:Create(Notification, ANIMATIONS.Elastic, {
+                Position = UDim2.new(1, -12, 1, -70)
+            }):Play()
+            
+            local function CloseNotification()
+                TweenService:Create(Notification, ANIMATIONS.Smooth, {
+                    Position = UDim2.new(1, 250, 1, -70)
+                }):Play()
+                task.wait(0.35)
+                Notification:Destroy()
+                isShowingNotification = false
+                
+                -- Show next notification in queue
+                if #notificationQueue > 0 then
+                    local nextNotif = table.remove(notificationQueue, 1)
+                    Window:Notify(nextNotif)
+                end
+            end
+            
+            CloseBtn.MouseButton1Click:Connect(CloseNotification)
+            
+            task.delay(options.Duration or 4, CloseNotification)
+        end
+        
+        ShowNotification()
+    end
+    
+    -- ==================== THEME SWITCHER ====================
+    function Window:SetTheme(themeName)
+        if THEMES[themeName] then
+            CURRENT_THEME = THEMES[themeName]
+            Window.Theme = themeName
+            Window:Notify({
+                Title = "Theme Changed",
+                Content = "Theme set to " .. themeName,
+                Type = "Success",
+                Duration = 2
+            })
+        end
+    end
+    
+    -- Load config and apply callbacks
+    task.defer(function()
+        task.wait(0.3)
+        Window.Config:ExecuteCallbacks(Window.ConfigData)
+    end)
+    
+    return Window
+end
+
+-- ==================== EXAMPLE USAGE ====================
+--[[
+local Luma = loadstring(game:HttpGet("YOUR_URL_HERE"))()
+
+local Window = Luma:CreateWindow({
+    Name = "Luma Hub",
+    Size = UDim2.new(0, 450, 0, 400),
+    Theme = "Dark", -- or "Light"
+    ToggleKey = Enum.KeyCode.RightShift,
+    FolderName = "LumaHub",
+    AutoSave = true
+})
+
+local MainTab = Window:CreateTab("Main", "⚡")
+local SettingsTab = Window:CreateTab("Settings", "⚙")
+
+local CombatSection = MainTab:CreateSection("Combat")
+
+CombatSection:CreateToggle({
+    Name = "Auto Attack",
+    Default = false,
+    Callback = function(value)
+        print("Auto Attack:", value)
+    end
+})
+
+CombatSection:CreateButton({
+    Name = "Execute Attack",
+    Callback = function()
+        print("Attack executed!")
+    end,
+    Popup = true,
+    PopupElements = {
+        {
+            Type = "Toggle",
+            Name = "Critical Hit",
+            Default = false,
+            Callback = function(value)
+                print("Critical Hit:", value)
+            end
+        },
+        {
+            Type = "Toggle",
+            Name = "Multi-Target",
+            Default = true,
+            Callback = function(value)
+                print("Multi-Target:", value)
+            end
+        }
+    }
+})
+
+CombatSection:CreateSlider({
+    Name = "Attack Speed",
+    Min = 1,
+    Max = 100,
+    Default = 50,
+    Increment = 1,
+    Suffix = "%",
+    Callback = function(value)
+        print("Attack Speed:", value)
+    end
+})
+
+CombatSection:CreateDropdown({
+    Name = "Weapon Type",
+    Options = {"Sword", "Bow", "Staff", "Axe"},
+    Default = "Sword",
+    Callback = function(option)
+        print("Selected weapon:", option)
+    end
+})
+
+local PlayerSection = MainTab:CreateSection("Player")
+
+PlayerSection:CreateInput({
+    Name = "Walk Speed",
+    Default = 16,
+    Placeholder = "Enter speed...",
+    Callback = function(value)
+        print("Walk Speed:", value)
+    end
+})
+
+PlayerSection:CreateKeybind({
+    Name = "Fly Toggle",
+    Default = Enum.KeyCode.F,
+    Callback = function()
+        print("Fly toggled!")
+    end
+})
+
+PlayerSection:CreateLabel("Current Version: 1.0.0")
+PlayerSection:CreateDivider()
+PlayerSection:CreateLabel("Use keybinds wisely!")
+
+-- Settings Tab
+local UISection = SettingsTab:CreateSection("UI Settings")
+
+UISection:CreateButton({
+    Name = "Switch to Light Theme",
+    Callback = function()
+        Window:SetTheme("Light")
+    end
+})
+
+UISection:CreateButton({
+    Name = "Switch to Dark Theme",
+    Callback = function()
+        Window:SetTheme("Dark")
+    end
+})
+
+-- Notifications
+Window:Notify({
+    Title = "Welcome!",
+    Content = "Luma Hub loaded successfully",
+    Type = "Success",
+    Duration = 3
+})
+]]
+
+return LumaHub
